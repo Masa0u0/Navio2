@@ -1,7 +1,8 @@
 #ifndef RCINPUT_NAVIO_H
 #define RCINPUT_NAVIO_H
 
-#include <pigpio.h>
+// #include <pigpio.h>
+#include <pigpio/pigpio.h>
 #include <stdio.h>
 #include <Common/RCInput.h>
 #include <Common/gpio.h>
