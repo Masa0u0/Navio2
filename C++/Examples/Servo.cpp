@@ -21,8 +21,8 @@ sudo ./Servo
 #include <unistd.h>
 #include <memory>
 
-#define SERVO_MIN 1250 /*mS*/
-#define SERVO_MAX 1750 /*mS*/
+#define SERVO_MIN 1250 /*uS*/
+#define SERVO_MAX 1750 /*uS*/
 
 #define PWM_OUTPUT 0
 
