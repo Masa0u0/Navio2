@@ -99,8 +99,10 @@ class Ublox {
 public:
 enum message_t
 {
-    NAV_POSLLH = 0x0102,
-    NAV_STATUS = 0x0103
+    NAV_POSLLH = (0x01<<8) + 0x02,
+    NAV_STATUS = (0x01<<8) + 0x03,
+    NAV_PVT = (0x01<<8) + 0x07,
+    NAV_COV = (0x01<<8) + 0x34,
 };
 
 private:
