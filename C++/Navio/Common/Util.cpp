@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cmath>
 
 #include "Util.h"
 
@@ -74,4 +75,21 @@ int get_navio_version()
     int version;
     read_file("/sys/firmware/devicetree/base/hat/product_id", "%x",&version);
     return version;
+}
+
+float decodeBinary32(unsigned int bin)
+{
+  int sign = bin >> 31 ? -1 : 1;
+  int exponent = ((bin & 0x7f800000) >> 23) - 0x7F;
+  unsigned int fraction = bin & 0x007fffff;
+
+  unsigned int pow2 = 1 << 23;
+  float fraction_decoded = 0.;
+  for (unsigned int i = 0; i < 23; ++i)
+  {
+    fraction_decoded += static_cast<float>((fraction >> i) & 1) / pow2;
+    pow2 = pow2 >> 1;
+  }
+
+  return sign * (1 + fraction_decoded) * std::pow(2, exponent);
 }

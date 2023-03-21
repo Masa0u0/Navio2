@@ -102,7 +102,7 @@ enum message_t
     NAV_POSLLH = (0x01<<8) + 0x02,
     NAV_STATUS = (0x01<<8) + 0x03,
     NAV_PVT = (0x01<<8) + 0x07,
-    NAV_COV = (0x01<<8) + 0x34,
+    NAV_COV = (0x01<<8) + 0x36,
 };
 
 private:
@@ -143,6 +143,8 @@ public:
     Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
     int enableNAV_POSLLH();
     int enableNAV_STATUS();
+    int enableNAV_PVT();
+    int enableNAV_COV();
     int testConnection();
     int configureSolutionRate(std::uint16_t meas_rate,
                               std::uint16_t nav_rate = 1,
@@ -153,5 +155,6 @@ public:
 private:
     int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void *msg, std::uint16_t size);
     int _spliceMemory(unsigned char *dest, const void * const src, size_t size, int dest_offset = 0);
+    /* p.171, 32.4 UBX Checksum */
     CheckSum _calculateCheckSum(unsigned char message[], std::size_t size);
 }; // end of ublox class def

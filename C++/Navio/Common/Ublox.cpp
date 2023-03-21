@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Ublox.h"
+#include "Util.h"
 
 #define PREAMBLE_OFFSET 2
 // class UBXScanner
@@ -251,34 +252,34 @@ int UBXParser::decodeMessage(std::vector<double>& data)
                 break;
         
         case Ublox::NAV_COV:
-                // NAV-COV, Class = 0x01, ID = 0x34
+                // NAV-COV, Class = 0x01, ID = 0x36
 
                 data.clear();
 
                 // posCovNN
-                data.push_back ((*(message+pos+25) << 24) | (*(message+pos+24) << 16) | (*(message+pos+23) << 8) | (*(message+pos+22)));
+                data.push_back (decodeBinary32((*(message+pos+25) << 24) | (*(message+pos+24) << 16) | (*(message+pos+23) << 8) | (*(message+pos+22))));
                 // posCovNE
-                data.push_back ((*(message+pos+29) << 24) | (*(message+pos+28) << 16) | (*(message+pos+27) << 8) | (*(message+pos+26)));
+                data.push_back (decodeBinary32((*(message+pos+29) << 24) | (*(message+pos+28) << 16) | (*(message+pos+27) << 8) | (*(message+pos+26))));
                 // posCovND
-                data.push_back ((*(message+pos+33) << 24) | (*(message+pos+32) << 16) | (*(message+pos+31) << 8) | (*(message+pos+30)));
+                data.push_back (decodeBinary32((*(message+pos+33) << 24) | (*(message+pos+32) << 16) | (*(message+pos+31) << 8) | (*(message+pos+30))));
                 // posCovEE
-                data.push_back ((*(message+pos+37) << 24) | (*(message+pos+36) << 16) | (*(message+pos+35) << 8) | (*(message+pos+34)));
+                data.push_back (decodeBinary32((*(message+pos+37) << 24) | (*(message+pos+36) << 16) | (*(message+pos+35) << 8) | (*(message+pos+34))));
                 // posCovED
-                data.push_back ((*(message+pos+41) << 24) | (*(message+pos+40) << 16) | (*(message+pos+39) << 8) | (*(message+pos+38)));
+                data.push_back (decodeBinary32((*(message+pos+41) << 24) | (*(message+pos+40) << 16) | (*(message+pos+39) << 8) | (*(message+pos+38))));
                 // posCovDD
-                data.push_back ((*(message+pos+45) << 24) | (*(message+pos+44) << 16) | (*(message+pos+43) << 8) | (*(message+pos+42)));
+                data.push_back (decodeBinary32((*(message+pos+45) << 24) | (*(message+pos+44) << 16) | (*(message+pos+43) << 8) | (*(message+pos+42))));
                 // velCovNN
-                data.push_back ((*(message+pos+49) << 24) | (*(message+pos+48) << 16) | (*(message+pos+47) << 8) | (*(message+pos+46)));
+                data.push_back (decodeBinary32((*(message+pos+49) << 24) | (*(message+pos+48) << 16) | (*(message+pos+47) << 8) | (*(message+pos+46))));
                 // velCovNE
-                data.push_back ((*(message+pos+53) << 24) | (*(message+pos+52) << 16) | (*(message+pos+51) << 8) | (*(message+pos+50)));
+                data.push_back (decodeBinary32((*(message+pos+53) << 24) | (*(message+pos+52) << 16) | (*(message+pos+51) << 8) | (*(message+pos+50))));
                 // velCovND
-                data.push_back ((*(message+pos+57) << 24) | (*(message+pos+56) << 16) | (*(message+pos+55) << 8) | (*(message+pos+54)));
+                data.push_back (decodeBinary32((*(message+pos+57) << 24) | (*(message+pos+56) << 16) | (*(message+pos+55) << 8) | (*(message+pos+54))));
                 // velCovEE
-                data.push_back ((*(message+pos+61) << 24) | (*(message+pos+60) << 16) | (*(message+pos+59) << 8) | (*(message+pos+58)));
+                data.push_back (decodeBinary32((*(message+pos+61) << 24) | (*(message+pos+60) << 16) | (*(message+pos+59) << 8) | (*(message+pos+58))));
                 // velCovED
-                data.push_back ((*(message+pos+65) << 24) | (*(message+pos+64) << 16) | (*(message+pos+63) << 8) | (*(message+pos+62)));
+                data.push_back (decodeBinary32((*(message+pos+65) << 24) | (*(message+pos+64) << 16) | (*(message+pos+63) << 8) | (*(message+pos+62))));
                 // velCovDD
-                data.push_back ((*(message+pos+69) << 24) | (*(message+pos+68) << 16) | (*(message+pos+67) << 8) | (*(message+pos+66)));
+                data.push_back (decodeBinary32((*(message+pos+69) << 24) | (*(message+pos+68) << 16) | (*(message+pos+67) << 8) | (*(message+pos+66))));
 
                 break;
 
@@ -337,20 +338,142 @@ Ublox::Ublox(std::string name, UBXScanner* scan, UBXParser* pars) : spi_device_n
 
 int Ublox::enableNAV_POSLLH()
 {
-    unsigned char gps_nav_posllh[] = {0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x02, 0x01, 0x0E, 0x47};
-    int gps_nav_posllh_length = (sizeof(gps_nav_posllh)/sizeof(*gps_nav_posllh));
-    unsigned char from_gps_data_nav[gps_nav_posllh_length];
+    constexpr size_t msg_size = 11;
+    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
 
-    return SPIdev::transfer(spi_device_name.c_str(), gps_nav_posllh, from_gps_data_nav, gps_nav_posllh_length, 200000);
+    // Header
+    tx[0] = 0xb5;
+    tx[1] = 0x62;
+
+    // Class
+    tx[2] = 0x06;
+
+    // ID
+    tx[3] = 0x01;
+
+    // Length
+    tx[4] = 0x03;  // 1の位
+    tx[5] = 0x00;  // 16の位
+
+    // Payload
+    tx[6] = 0x01;  // msgClass
+    tx[7] = 0x02;  // msgID
+    tx[8] = 0x01;  // rate
+
+    // Checksum
+    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
+    tx[9] = ck.CK_A;
+    tx[10] = ck.CK_B;
+
+    int length = (sizeof(tx)/sizeof(*tx));
+    unsigned char rx[length];
+
+    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
 }
 
 int Ublox::enableNAV_STATUS()
 {
-    unsigned char gps_nav_status[] = {0xb5, 0x62, 0x06, 0x01, 0x03, 0x00, 0x01, 0x03, 0x01, 0x0F, 0x49};
-    int gps_nav_status_length = (sizeof(gps_nav_status)/sizeof(*gps_nav_status));
-    unsigned char from_gps_data_nav[gps_nav_status_length];
+    constexpr size_t msg_size = 11;
+    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
 
-    return SPIdev::transfer(spi_device_name.c_str(), gps_nav_status, from_gps_data_nav, gps_nav_status_length, 200000);
+    // Header
+    tx[0] = 0xb5;
+    tx[1] = 0x62;
+
+    // Class
+    tx[2] = 0x06;
+
+    // ID
+    tx[3] = 0x01;
+
+    // Length
+    tx[4] = 0x03;  // 1の位
+    tx[5] = 0x00;  // 16の位
+
+    // Payload
+    tx[6] = 0x01;  // msgClass
+    tx[7] = 0x03;  // msgID
+    tx[8] = 0x01;  // rate
+
+    // Checksum
+    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
+    tx[9] = ck.CK_A;
+    tx[10] = ck.CK_B;
+
+    int length = (sizeof(tx)/sizeof(*tx));
+    unsigned char rx[length];
+
+    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
+}
+
+int Ublox::enableNAV_PVT()
+{
+    constexpr size_t msg_size = 11;
+    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
+
+    // Header
+    tx[0] = 0xb5;
+    tx[1] = 0x62;
+
+    // Class
+    tx[2] = 0x06;
+
+    // ID
+    tx[3] = 0x01;
+
+    // Length
+    tx[4] = 0x03;  // 1の位
+    tx[5] = 0x00;  // 16の位
+
+    // Payload
+    tx[6] = 0x01;  // msgClass
+    tx[7] = 0x07;  // msgID
+    tx[8] = 0x01;  // rate
+
+    // Checksum
+    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
+    tx[9] = ck.CK_A;
+    tx[10] = ck.CK_B;
+
+    int length = (sizeof(tx)/sizeof(*tx));
+    unsigned char rx[length];
+
+    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
+}
+
+int Ublox::enableNAV_COV()
+{
+    constexpr size_t msg_size = 11;
+    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
+
+    // Header
+    tx[0] = 0xb5;
+    tx[1] = 0x62;
+
+    // Class
+    tx[2] = 0x06;
+
+    // ID
+    tx[3] = 0x01;
+
+    // Length
+    tx[4] = 0x03;  // 1の位
+    tx[5] = 0x00;  // 16の位
+
+    // Payload
+    tx[6] = 0x01;  // msgClass
+    tx[7] = 0x36;  // msgID
+    tx[8] = 0x01;  // rate
+
+    // Checksum
+    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
+    tx[9] = ck.CK_A;
+    tx[10] = ck.CK_B;
+
+    int length = (sizeof(tx)/sizeof(*tx));
+    unsigned char rx[length];
+
+    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
 }
 
 int Ublox::testConnection()
@@ -367,6 +490,16 @@ int Ublox::testConnection()
     }
 
     if (enableNAV_STATUS()<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (enableNAV_PVT()<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (enableNAV_COV()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
     }
@@ -462,6 +595,16 @@ int Ublox::decodeMessages()
     }
 
     if (enableNAV_STATUS()<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (enableNAV_PVT()<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (enableNAV_COV()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
     }
