@@ -41,9 +41,10 @@ int main(int argc, char *argv[]){
     if(gps.testConnection())
     {
         printf("Ublox test OK\n");
-        if (!gps.configureSolutionRate(1000))
+        if (gps.configureSolutionRate(1000) < 0)
         {
             printf("Setting new rate: FAILED\n");
+            return 1;
         }
 
         // gps.decodeMessages();

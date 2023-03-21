@@ -487,21 +487,25 @@ int Ublox::testConnection()
     if (enableNAV_POSLLH()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
     if (enableNAV_STATUS()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
     if (enableNAV_PVT()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
     if (enableNAV_COV()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
     while (count < UBX_BUFFER_LENGTH/2)
@@ -543,7 +547,7 @@ int Ublox::configureSolutionRate(std::uint16_t meas_rate,
     msg.nav_rate     = nav_rate;
     msg.timeref      = timeref;
 
-    _sendMessage(CLASS_CFG, MSG_CFG_RATE, &msg, sizeof(CfgNavRate));
+    return _sendMessage(CLASS_CFG, MSG_CFG_RATE, &msg, sizeof(CfgNavRate));
 }
 
 int Ublox::_sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void *msg, std::uint16_t size)
