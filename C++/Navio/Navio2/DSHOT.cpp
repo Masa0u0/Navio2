@@ -1,58 +1,92 @@
 #include <stdexcept>
 #include <cassert>
-#include <pigpio/pigpio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <limits.h>
 
 #include "./DSHOT.h"
+#include "../Common/Util.h"
 
 using namespace std;
 
 DSHOT::DSHOT(uint32_t dshot_type)
 {
+  t0_high_.tv_sec = 0;
+  t0_low_.tv_sec = 0;
+  t1_high_.tv_sec = 0;
+  t1_low_.tv_sec = 0;
+
+  uint32_t pulse_width;
+
   switch (dshot_type)
   {
     case DSHOT_150:
-      sleep_high_ = 5.0e-6;
-      sleep_low_ = 2.5e-6;
+      pulse_width = 1000000 / 150;
+      t0_high_.tv_nsec = 2500;
+      t1_high_.tv_nsec = 5000;
       break;
     case DSHOT_300:
-      sleep_high_ = 2.5e-6;
-      sleep_low_ = 1.25e-6;
+      pulse_width = 1000000 / 300;
+      t0_high_.tv_nsec = 1250;
+      t1_high_.tv_nsec = 2500;
       break;
     case DSHOT_600:
-      sleep_high_ = 1.25e-6;
-      sleep_low_ = 6.25e-7;
-      break;
-    case DSHOT_1200:
-      sleep_high_ = 6.25e-7;
-      sleep_low_ = 3.125e-7;
+      pulse_width = 1000000 / 600;
+      t0_high_.tv_nsec = 625;
+      t1_high_.tv_nsec = 1250;
       break;
     default:
-      throw runtime_error("Unknown DSHOT type: " + to_string(dshot_type));
+      throw runtime_error("Invalid DSHOT type: " + to_string(dshot_type));
   }
 
-  if (gpioInitialise() < 0)
+  t0_low_.tv_nsec = pulse_width - t0_high_.tv_nsec;
+  t1_low_.tv_nsec = pulse_width - t1_high_.tv_nsec;
+}
+
+void DSHOT::initialize(uint32_t pin)
+{
+  auto bcm = getBCM(pin);
+  exportServoPinAsGpio(bcm);
+  setGpioOutput(bcm);
+}
+
+void DSHOT::exportServoPinAsGpio(uint32_t bcm)
+{
+  char* file_path = "/sys/class/gpio/export";
+  if (write_file(file_path, "%u", bcm) != 0)
   {
-    throw runtime_error("Failed to initialize GPIO.");
+    throw runtime_error("Failed to export GPIO: " + to_string(bcm));
   }
 }
 
-DSHOT::~DSHOT()
+void DSHOT::setGpioOutput(uint32_t bcm)
 {
-  gpioTerminate();
-}
-
-void DSHOT::init(uint32_t pin)
-{
-  gpioSetMode(pin, PI_OUTPUT);
+  string file_path = "/sys/class/gpio/gpio" + to_string(bcm) + "/direction";
+  if (write_file(file_path.c_str(), "out") != 0)
+  {
+    throw runtime_error("Failed to set GPIO output: " + to_string(bcm));
+  }
 }
 
 void DSHOT::setSignal(uint32_t pin, uint32_t throttle, uint32_t telem)
 {
-  assert(throttle < (1 << 11));
+  assert(48 <= throttle && throttle < (1 << 11));
 
   uint32_t thr_telem = addTelemetry(throttle, telem);
   uint32_t thr_telem_ck = addChecksum(thr_telem);
-  sendPacket(pin, thr_telem_ck);
+  uint32_t bcm = getBCM(pin);
+  sendPacket(bcm, thr_telem_ck);
+}
+
+char DSHOT::getBCM(uint32_t pin)
+{
+  return 500 + pin - 1;  // 仮想的なBCM番号
 }
 
 uint32_t DSHOT::addTelemetry(uint32_t throttle, uint32_t telem)
@@ -74,29 +108,65 @@ uint32_t DSHOT::addChecksum(uint32_t thr_telem)
   return packet_ck;
 }
 
-void DSHOT::sendPacket(uint32_t pin, uint32_t packet)
+void DSHOT::sendPacket(uint32_t bcm, uint32_t packet)
 {
   for (uint32_t i = 15; i >= 0; --i)
   {
     if ((packet >> i) & 1)
     {
-      sendHigh(pin);
+      sendOne(bcm);
     }
     else
     {
-      sendLow(pin);
+      sendZero(bcm);
     }
   }
 }
 
-void DSHOT::sendHigh(uint32_t pin)
+void DSHOT::sendOne(uint32_t bcm)
 {
-  gpioWrite(pin, 1);
-  time_sleep(sleep_high_);
+  setHigh(bcm);
+  if (nanosleep(&t1_high_, NULL) != 0)
+  {
+    throw runtime_error("Error occurred during sleep.");
+  }
+
+  setLow(bcm);
+  if (nanosleep(&t1_low_, NULL) != 0)
+  {
+    throw runtime_error("Error occurred during sleep.");
+  }
 }
 
-void DSHOT::sendLow(uint32_t pin)
+void DSHOT::sendZero(uint32_t bcm)
 {
-  gpioWrite(pin, 0);
-  time_sleep(sleep_low_);
+  setHigh(bcm);
+  if (nanosleep(&t0_high_, NULL) != 0)
+  {
+    throw runtime_error("Error occurred during sleep.");
+  }
+
+  setLow(bcm);
+  if (nanosleep(&t0_low_, NULL) != 0)
+  {
+    throw runtime_error("Error occurred during sleep.");
+  }
+}
+
+void DSHOT::setHigh(uint32_t bcm)
+{
+  string file_path = "/sys/class/gpio/gpio" + to_string(bcm) + "/value";
+  if (write_file(file_path.c_str(), "1") != 0)
+  {
+    throw runtime_error("Failed to set high: " + to_string(bcm));
+  }
+}
+
+void DSHOT::setLow(uint32_t bcm)
+{
+  string file_path = "/sys/class/gpio/gpio" + to_string(bcm) + "/value";
+  if (write_file(file_path.c_str(), "0") != 0)
+  {
+    throw runtime_error("Failed to set low: " + to_string(bcm));
+  }
 }

@@ -13,22 +13,27 @@ public:
     DSHOT_150,
     DSHOT_300,
     DSHOT_600,
-    DSHOT_1200,
   };
 
   DSHOT(uint32_t dshot_type);
-  ~DSHOT();
 
-  void init(uint32_t pin);
+  void initialize(uint32_t pin);
   void setSignal(uint32_t pin, uint32_t throttle, uint32_t telem = 0);
 
 private:
-  double sleep_high_;
-  double sleep_low_;
+  timespec t0_high_;
+  timespec t0_low_;
+  timespec t1_high_;
+  timespec t1_low_;
 
+  char getBCM(uint32_t pin);
+  void exportServoPinAsGpio(uint32_t bcm);
+  void setGpioOutput(uint32_t bcm);
   uint32_t addTelemetry(uint32_t throttle, uint32_t telem);
   uint32_t addChecksum(uint32_t thr_telem);
-  void sendPacket(uint32_t pin, uint32_t packet);
-  void sendHigh(uint32_t pin);
-  void sendLow(uint32_t pin);
+  void sendPacket(uint32_t bcm, uint32_t packet);
+  void sendOne(uint32_t bcm);
+  void sendZero(uint32_t bcm);
+  void setHigh(uint32_t bcm);
+  void setLow(uint32_t bcm);
 };
