@@ -112,7 +112,7 @@ uint32_t DSHOT::addChecksum(uint32_t thr_telem)
 
 void DSHOT::sendPacket(uint32_t bcm, uint32_t packet)
 {
-  for (uint32_t i = 15; i >= 0; --i)
+  for (int i = 15; i >= 0; --i)
   {
     if ((packet >> i) & 1)
     {
