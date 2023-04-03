@@ -18,13 +18,19 @@ int main(int argc, char* argv[])
 
   if (getuid())
   {
-    cerr << "Not root. Please launch like this: sudo " << argv[0] << endl;
+    cerr << "Not root." << endl;
+    return 1;
+  }
+
+  if (argc != 2)
+  {
+    cerr << "Please specify pin number like: " << argv[0] << " 1" << endl;
     return 1;
   }
 
   DSHOT dshot(DSHOT::DSHOT_600);
 
-  auto pin = *argv[1];
+  uint32_t pin = *argv[1] - '0';  // char -> int
   dshot.initialize(pin);
 
   constexpr uint32_t cycle_count = ((1 << 11) - 48) * 2;
