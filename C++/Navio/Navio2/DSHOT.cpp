@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdexcept>
 #include <cassert>
 #include <fcntl.h>
@@ -58,8 +59,9 @@ void DSHOT::initialize(uint32_t pin)
 
 void DSHOT::exportServoPinAsGpio(uint32_t bcm)
 {
-  char* file_path = "/sys/class/gpio/export";
-  if (write_file(file_path, "%u", bcm) != 0)
+  char file_path[] = "/sys/class/gpio/export";
+  int err = write_file(file_path, "%u", bcm);
+  if (err < 0 && err != -EBUSY)  // エクスポートの際の"Device or resource busy"は問題ない
   {
     throw runtime_error("Failed to export GPIO: " + to_string(bcm));
   }
@@ -68,7 +70,7 @@ void DSHOT::exportServoPinAsGpio(uint32_t bcm)
 void DSHOT::setGpioOutput(uint32_t bcm)
 {
   string file_path = "/sys/class/gpio/gpio" + to_string(bcm) + "/direction";
-  if (write_file(file_path.c_str(), "out") != 0)
+  if (write_file(file_path.c_str(), "out") < 0)
   {
     throw runtime_error("Failed to set GPIO output: " + to_string(bcm));
   }
@@ -84,7 +86,7 @@ void DSHOT::setSignal(uint32_t pin, uint32_t throttle, uint32_t telem)
   sendPacket(bcm, thr_telem_ck);
 }
 
-char DSHOT::getBCM(uint32_t pin)
+uint32_t DSHOT::getBCM(uint32_t pin)
 {
   return 500 + pin - 1;  // 仮想的なBCM番号
 }
@@ -156,7 +158,7 @@ void DSHOT::sendZero(uint32_t bcm)
 void DSHOT::setHigh(uint32_t bcm)
 {
   string file_path = "/sys/class/gpio/gpio" + to_string(bcm) + "/value";
-  if (write_file(file_path.c_str(), "1") != 0)
+  if (write_file(file_path.c_str(), "1") < 0)
   {
     throw runtime_error("Failed to set high: " + to_string(bcm));
   }
@@ -165,7 +167,7 @@ void DSHOT::setHigh(uint32_t bcm)
 void DSHOT::setLow(uint32_t bcm)
 {
   string file_path = "/sys/class/gpio/gpio" + to_string(bcm) + "/value";
-  if (write_file(file_path.c_str(), "0") != 0)
+  if (write_file(file_path.c_str(), "0") < 0)
   {
     throw runtime_error("Failed to set low: " + to_string(bcm));
   }
