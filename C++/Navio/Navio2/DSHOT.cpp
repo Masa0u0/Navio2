@@ -50,20 +50,40 @@ DSHOT::DSHOT(uint32_t dshot_type)
   t1_low_.tv_nsec = pulse_width - t1_high_.tv_nsec;
 }
 
+DSHOT::~DSHOT()
+{
+  for (const auto& pin : gpio_pins_)
+  {
+    auto bcm = getBCM(pin);
+    unexportGPIO(bcm);
+  }
+}
+
 void DSHOT::initialize(uint32_t pin)
 {
+  gpio_pins_.insert(pin);
   auto bcm = getBCM(pin);
-  exportServoPinAsGpio(bcm);
+  exportGPIO(bcm);
   setGpioOutput(bcm);
 }
 
-void DSHOT::exportServoPinAsGpio(uint32_t bcm)
+void DSHOT::exportGPIO(uint32_t bcm)
 {
   char file_path[] = "/sys/class/gpio/export";
   int err = write_file(file_path, "%u", bcm);
   if (err < 0 && err != -EBUSY)  // エクスポートの際の"Device or resource busy"は問題ない
   {
     throw runtime_error("Failed to export GPIO: " + to_string(bcm));
+  }
+}
+
+void DSHOT::unexportGPIO(uint32_t bcm)
+{
+  char file_path[] = "/sys/class/gpio/unexport";
+  int err = write_file(file_path, "%u", bcm);
+  if (err < 0 && err != -EBUSY)
+  {
+    throw runtime_error("Failed to unexport GPIO: " + to_string(bcm));
   }
 }
 

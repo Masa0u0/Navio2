@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_set>
 /**
  * @brief DSHOT for Raspberry Pi
  * cf. https://github.com/dmrlawson/raspberrypi-dshot
@@ -16,6 +17,7 @@ public:
   };
 
   DSHOT(uint32_t dshot_type);
+  ~DSHOT();
 
   void initialize(uint32_t pin);
   void setSignal(uint32_t pin, uint32_t throttle, uint32_t telem = 0);
@@ -25,9 +27,11 @@ private:
   timespec t0_low_;
   timespec t1_high_;
   timespec t1_low_;
+  std::unordered_set<uint32_t> gpio_pins_;
 
   uint32_t getBCM(uint32_t pin);
-  void exportServoPinAsGpio(uint32_t bcm);
+  void exportGPIO(uint32_t bcm);
+  void unexportGPIO(uint32_t bcm);
   void setGpioOutput(uint32_t bcm);
   uint32_t addTelemetry(uint32_t throttle, uint32_t telem);
   uint32_t addChecksum(uint32_t thr_telem);
