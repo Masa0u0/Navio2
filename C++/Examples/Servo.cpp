@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
             return 1;
         }
         
-	pwm->set_frequency(PWM_OUTPUT, 50);  // No need
+	pwm->set_frequency(PWM_OUTPUT, 50);
 
 	if ( !(pwm->enable(PWM_OUTPUT)) ) {
 	    return 1;
