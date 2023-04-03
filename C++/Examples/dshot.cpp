@@ -24,13 +24,14 @@ int main(int argc, char* argv[])
 
   if (argc != 2)
   {
-    cerr << "Please specify pin number like: " << argv[0] << " 1" << endl;
+    cerr << "Usage: " << argv[0] << " <Pin>" << endl;
     return 1;
   }
 
-  DSHOT dshot(DSHOT::DSHOT_600);
-
+  // Parse arguments
   uint32_t pin = *argv[1] - '0';  // char -> int
+
+  DSHOT dshot(DSHOT::DSHOT_150);
   dshot.initialize(pin);
 
   constexpr uint32_t cycle_count = ((1 << 11) - 48) * 2;
