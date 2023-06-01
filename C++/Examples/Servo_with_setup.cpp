@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
   cout << "ESC setup starts in 3 seconds." << endl;
 
   // Setup ESC
-  // cf. https://shizenkarasuzon.hatenablog.com/entry/2019/03/04/002326#%E8%A3%9C%E8%B6%B3ESC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
+  // https://shizenkarasuzon.hatenablog.com/entry/2019/03/04/002326#%E8%A3%9C%E8%B6%B3ESC%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6
   if (!pwm.set_duty_cycle(CHANNEL, SERVO_MAX))
   {
     return 1;
