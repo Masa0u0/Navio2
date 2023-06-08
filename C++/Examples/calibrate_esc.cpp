@@ -7,9 +7,11 @@
 #include <Common/Util.h>
 
 #define CHANNEL 0
-#define FREQUENCY 50  // [Hz]
-#define PWM_MIN 1000  // [us]
-#define PWM_MAX 2000  // [us]
+#define FREQUENCY 50       // [Hz]
+#define PWM_MAX 2000       // [us]
+#define PWM_MIN 1000       // [us]
+#define SLEEP_TIME_HIGH 3  // [s]
+#define SLEEP_TIME_LOW 4   // [s]
 
 using namespace std;
 
@@ -47,23 +49,15 @@ int main(int argc, char* argv[])
   {
     return 1;
   }
-  sleep(2);
+  sleep(SLEEP_TIME_HIGH);
 
   cout << "Step 2: Send minimum throttle command" << endl;
   if (!pwm.set_duty_cycle(CHANNEL, PWM_MIN))
   {
     return 1;
   }
-  sleep(1);
+  sleep(SLEEP_TIME_LOW);
 
-  cout << "Step 3: Confirmation" << endl;
-  if (!pwm.set_duty_cycle(CHANNEL, PWM_MIN))
-  {
-    return 1;
-  }
-  sleep(1);
-
-  // Now the ESC should be calibrated.
-
+  cout << "Now the ESC should be calibrated." << endl;
   return 0;
 }
