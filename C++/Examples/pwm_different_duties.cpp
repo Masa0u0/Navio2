@@ -13,7 +13,6 @@
 #define PWM_MAX 2000        // [us]
 #define DISARM_DURATION 3.  // [s]
 #define INTERVAL 0.1        // [s]
-#define WAIT_TO_SERVO 3     // [s]
 
 using namespace std;
 
@@ -52,7 +51,7 @@ int main(int argc, char** argv)
   }
 
   // Send disarm command
-  cout << "Send disarm command" << endl;
+  cout << "Send disarm command for " << DISARM_DURATION << " seconds." << endl;
   for (int _ = 0; _ < DISARM_DURATION / INTERVAL; ++_)
   {
     for (uint32_t channel = 0; channel < SERVO_RAIL_SIZE; ++channel)
@@ -63,11 +62,10 @@ int main(int argc, char** argv)
         return 1;
       }
     }
-    sleep(INTERVAL);
+    usleep(INTERVAL * 1e+6);
   }
 
-  cout << "Start to send PWM commands in " << WAIT_TO_SERVO << " seconds." << endl;
-  sleep(WAIT_TO_SERVO);
+  // If commands are sent immediately after disarming, the motors will rotate.
   cout << "Start to send PWM commands." << endl;
 
   // Servo control loop
@@ -83,7 +81,7 @@ int main(int argc, char** argv)
         return 1;
       }
     }
-    sleep(INTERVAL);
+    usleep(INTERVAL * 1e+6);
   }
 
   return 0;
