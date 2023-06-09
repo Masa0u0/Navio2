@@ -68,6 +68,7 @@ int main(int argc, char** argv)
 
   cout << "Start to send PWM commands in " << WAIT_TO_SERVO << " seconds." << endl;
   sleep(WAIT_TO_SERVO);
+  cout << "Start to send PWM commands." << endl;
 
   // Servo control loop
   while (true)
