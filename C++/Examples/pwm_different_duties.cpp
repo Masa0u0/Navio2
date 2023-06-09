@@ -13,6 +13,7 @@
 #define PWM_MAX 2000        // [us]
 #define DISARM_DURATION 3.  // [s]
 #define INTERVAL 0.1        // [s]
+#define WAIT_TO_SERVO 3     // [s]
 
 using namespace std;
 
@@ -64,6 +65,9 @@ int main(int argc, char** argv)
     }
     sleep(INTERVAL);
   }
+
+  cout << "Start to send PWM commands in " << WAIT_TO_SERVO << " seconds." << endl;
+  sleep(WAIT_TO_SERVO);
 
   // Servo control loop
   while (true)
