@@ -103,6 +103,7 @@ enum message_t
     NAV_STATUS = (0x01<<8) + 0x03,
     NAV_PVT = (0x01<<8) + 0x07,
     NAV_COV = (0x01<<8) + 0x36,
+    NAV_VELNED = (0x01<<8) + 0x12,
 };
 
 private:
@@ -145,7 +146,9 @@ public:
     int enableNAV_STATUS();
     int enableNAV_PVT();
     int enableNAV_COV();
+    int enableNAV_VELNED();
     int testConnection();
+    /* 32.10.27.1 Navigation/measurement rate settings */
     int configureSolutionRate(std::uint16_t meas_rate,
                               std::uint16_t nav_rate = 1,
                               std::uint16_t timeref = 0);

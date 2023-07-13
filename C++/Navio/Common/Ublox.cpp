@@ -282,6 +282,20 @@ int UBXParser::decodeMessage(std::vector<double>& data)
                 data.push_back (decodeBinary32((*(message+pos+69) << 24) | (*(message+pos+68) << 16) | (*(message+pos+67) << 8) | (*(message+pos+66))));
 
                 break;
+        
+        case Ublox::NAV_VELNED:
+                // NAV-VELNED, Class = 0x01, ID = 0x12
+
+                data.clear();
+
+                // velN
+                data.push_back ((*(message+pos+13) << 24) | (*(message+pos+12) << 16) | (*(message+pos+11) << 8) | (*(message+pos+10)));
+                // velE
+                data.push_back ((*(message+pos+17) << 24) | (*(message+pos+16) << 16) | (*(message+pos+15) << 8) | (*(message+pos+14)));
+                // velD
+                data.push_back ((*(message+pos+21) << 24) | (*(message+pos+20) << 16) | (*(message+pos+19) << 8) | (*(message+pos+18)));
+
+                break;
 
         default:
                 // In case we don't want to decode the received message
@@ -476,6 +490,41 @@ int Ublox::enableNAV_COV()
     return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
 }
 
+int Ublox::enableNAV_VELNED()
+{
+    constexpr size_t msg_size = 11;
+    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
+
+    // Header
+    tx[0] = 0xb5;
+    tx[1] = 0x62;
+
+    // Class
+    tx[2] = 0x06;
+
+    // ID
+    tx[3] = 0x01;
+
+    // Length
+    tx[4] = 0x03;  // 1の位
+    tx[5] = 0x00;  // 16の位
+
+    // Payload
+    tx[6] = 0x01;  // msgClass
+    tx[7] = 0x12;  // msgID
+    tx[8] = 0x01;  // rate
+
+    // Checksum
+    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
+    tx[9] = ck.CK_A;
+    tx[10] = ck.CK_B;
+
+    int length = (sizeof(tx)/sizeof(*tx));
+    unsigned char rx[length];
+
+    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
+}
+
 int Ublox::testConnection()
 {
     int status;
@@ -503,6 +552,12 @@ int Ublox::testConnection()
     }
 
     if (enableNAV_COV()<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
+    }
+
+    if (enableNAV_VELNED()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
@@ -611,6 +666,12 @@ int Ublox::decodeMessages()
     if (enableNAV_COV()<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (enableNAV_VELNED()<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
     while (true)
