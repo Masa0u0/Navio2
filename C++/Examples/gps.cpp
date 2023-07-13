@@ -48,91 +48,92 @@ int main(int argc, char *argv[]){
         }
 
         // gps.decodeMessages();
-        // You can use this function to decode all messages, incoming from the GPS receiver. The function starts an infinite loop.
-        // In this example we can only decode NAV_STATUS and NAV-POSLLH messages, the others are simply ignored.
-        // You can add new message types in function decodeMessage() of class UBXParser(see ublox.h)
+        // // You can use this function to decode all messages, incoming from the GPS receiver. The function starts an infinite loop.
+        // // In this example we can only decode NAV_STATUS and NAV-POSLLH messages, the others are simply ignored.
+        // // You can add new message types in function decodeMessage() of class UBXParser(see ublox.h)
 
 
-        // Here, however we use a different approach. Instead of trying to extract info from every message(as done in decodeMessages()),
-        // this function waits for a message of a specified type and gets you just the information you need
-        // In this example we decode NAV_STATUS and NAV-POSLLH messages, adding new types, however is quite easy
+        // // Here, however we use a different approach. Instead of trying to extract info from every message(as done in decodeMessages()),
+        // // this function waits for a message of a specified type and gets you just the information you need
+        // // In this example we decode NAV_STATUS and NAV-POSLLH messages, adding new types, however is quite easy
 
-        while (true)
-        {
+        // uint32_t cnt = 0;
+        // while (true)
+        // {
+        //     cout << cnt++ << endl;
+        //     if (gps.decodeSingleMessage(Ublox::NAV_POSLLH, data) == 1)
+        //     {
+        //         // after desired message is successfully decoded, we can use the information stored in data vector
+        //         // right here, or we can do something with it from inside decodeSingleMessage() function(see ublox.h).
+        //         // the way, data is stored in data vector is specified in decodeMessage() function of class UBXParser(see ublox.h)
+        //         printf("GPS Millisecond Time of Week: %.0lf s\n", data[0]/1000);
+        //         printf("Longitude: %lf\n", data[1]/10000000);
+        //         printf("Latitude: %lf\n", data[2]/10000000);
+        //         printf("Height above Ellipsoid: %.3lf m\n", data[3]/1000);
+        //         printf("Height above mean sea level: %.3lf m\n", data[4]/1000);
+        //         printf("Horizontal Accuracy Estateimate: %.3lf m\n", data[5]/1000);
+        //         printf("Vertical Accuracy Estateimate: %.3lf m\n", data[6]/1000);
 
-            if (gps.decodeSingleMessage(Ublox::NAV_POSLLH, data) == 1)
-            {
-                // after desired message is successfully decoded, we can use the information stored in data vector
-                // right here, or we can do something with it from inside decodeSingleMessage() function(see ublox.h).
-                // the way, data is stored in data vector is specified in decodeMessage() function of class UBXParser(see ublox.h)
-                printf("GPS Millisecond Time of Week: %.0lf s\n", data[0]/1000);
-                printf("Longitude: %lf\n", data[1]/10000000);
-                printf("Latitude: %lf\n", data[2]/10000000);
-                printf("Height above Ellipsoid: %.3lf m\n", data[3]/1000);
-                printf("Height above mean sea level: %.3lf m\n", data[4]/1000);
-                printf("Horizontal Accuracy Estateimate: %.3lf m\n", data[5]/1000);
-                printf("Vertical Accuracy Estateimate: %.3lf m\n", data[6]/1000);
+        //     } else {
+        //         // printf("Message not captured\n");
+        //         // use this to see, how often you get the right messages
+        //         // to increase the frequency you can turn off the undesired messages or tweak ublox settings
+        //         // to increase internal receiver frequency
+        //     }
 
-            } else {
-                // printf("Message not captured\n");
-                // use this to see, how often you get the right messages
-                // to increase the frequency you can turn off the undesired messages or tweak ublox settings
-                // to increase internal receiver frequency
-            }
+        //     if (gps.decodeSingleMessage(Ublox::NAV_VELNED, data) == 1)
+        //     {
+        //         cout << "North velocity: "<< data[0] << " cm/s" << endl;
+        //         cout << "East velocity : "<< data[1] << " cm/s" << endl;
+        //         cout << "Down velocity : "<< data[2] << " cm/s" << endl;
+        //     }
 
-            if (gps.decodeSingleMessage(Ublox::NAV_VELNED, data) == 1)
-            {
-                cout << "North velocity: "<< data[0] << " cm/s" << endl;
-                cout << "East velocity : "<< data[1] << " cm/s" << endl;
-                cout << "Down velocity : "<< data[2] << " cm/s" << endl;
-            }
+        //     if (gps.decodeSingleMessage(Ublox::NAV_STATUS, data) == 1)
+        //     {
+        //         printf("Current GPS status:\n");
+        //         printf("gpsFixOk: %d\n", ((int)data[1] & 0x01));
 
-            if (gps.decodeSingleMessage(Ublox::NAV_STATUS, data) == 1)
-            {
-                printf("Current GPS status:\n");
-                printf("gpsFixOk: %d\n", ((int)data[1] & 0x01));
+        //         printf("gps Fix status: ");
+        //         switch((int)data[0]){
+        //             case 0x00:
+        //                 printf("no fix\n");
+        //                 break;
 
-                printf("gps Fix status: ");
-                switch((int)data[0]){
-                    case 0x00:
-                        printf("no fix\n");
-                        break;
+        //             case 0x01:
+        //                 printf("dead reckoning only\n");
+        //                 break;
 
-                    case 0x01:
-                        printf("dead reckoning only\n");
-                        break;
+        //             case 0x02:
+        //                 printf("2D-fix\n");
+        //                 break;
 
-                    case 0x02:
-                        printf("2D-fix\n");
-                        break;
+        //             case 0x03:
+        //                 printf("3D-fix\n");
+        //                 break;
 
-                    case 0x03:
-                        printf("3D-fix\n");
-                        break;
+        //             case 0x04:
+        //                 printf("GPS + dead reckoning combined\n");
+        //                 break;
 
-                    case 0x04:
-                        printf("GPS + dead reckoning combined\n");
-                        break;
+        //             case 0x05:
+        //                 printf("Time only fix\n");
+        //                 break;
 
-                    case 0x05:
-                        printf("Time only fix\n");
-                        break;
+        //             default:
+        //                 printf("Reserved value. Current state unknown\n");
+        //                 break;
 
-                    default:
-                        printf("Reserved value. Current state unknown\n");
-                        break;
+        //         }
 
-                }
+        //         printf("\n");
 
-                printf("\n");
-
-            } else {
-                // printf("Status Message not captured\n");
-            }
+        //     } else {
+        //         // printf("Status Message not captured\n");
+        //     }
 
 
-            usleep(200);
-        }
+        //     usleep(200);
+        // }
 
     } else {
 
