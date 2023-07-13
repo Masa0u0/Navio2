@@ -342,12 +342,38 @@ int UBXParser::checkMessage()
 
 Ublox::Ublox(std::string name) : spi_device_name(name), scanner(new UBXScanner()), parser(new UBXParser(scanner))
 {
-
 }
 
 Ublox::Ublox(std::string name, UBXScanner* scan, UBXParser* pars) : spi_device_name(name), scanner(scan), parser(pars)
 {
+}
 
+Ublox::~Ublox()
+{
+    if (disableNAV(NAV_STATUS)<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (disableNAV(NAV_POSLLH)<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (disableNAV(NAV_VELNED)<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (disableNAV(NAV_PVT)<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
+
+    if (disableNAV(NAV_COV)<0)
+    {
+        std::cerr << "Could not configure ublox over SPI\n";
+    }
 }
 
 int Ublox::enableNAV(message_t msg)

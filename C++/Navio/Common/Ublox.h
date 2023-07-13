@@ -142,6 +142,7 @@ private:
 public:
     Ublox(std::string name = "/dev/spidev0.0");
     Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
+    ~Ublox();
     int enableNAV(message_t msg);
     int disableNAV(message_t msg);
     int testConnection();
