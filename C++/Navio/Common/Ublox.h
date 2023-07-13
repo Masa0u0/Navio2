@@ -27,7 +27,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-//#define _XOPEN_SOURCE 600
+// #define _XOPEN_SOURCE 600
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -44,118 +44,140 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include "SPIdev.h"
 
+#include "./nav_payloads.hpp"
+
 #define PACKED __attribute__((__packed__))
 
 static const int UBX_BUFFER_LENGTH = 1024;
 
-class UBXScanner {
-public:
-    enum State
-    {
-        Sync1,
-        Sync2,
-        Class,
-        ID,
-        Length1,
-        Length2,
-        Payload,
-        CK_A,
-        CK_B,
-        Done
-    };
-
-    unsigned char message[UBX_BUFFER_LENGTH];   // Buffer for UBX message
-    unsigned int message_length;    // Length of the received message
-
-private:
-    unsigned int position;          // Indicates current buffer offset
-    unsigned int payload_length;  // Length of current message payload
-    State state;                    // Current scanner state
-
-public:
-    UBXScanner();
-    unsigned char* getMessage();
-    unsigned int getMessageLength();
-    unsigned int getPosition();
-    void reset();
-    int update(unsigned char data);
-};
-
-class UBXParser{
-private:
-    UBXScanner* scanner; // pointer to the scanner, which finds the messages in the data stream
-    unsigned char* message; // pointer to the scanner's message buffer
-    unsigned int length; // current message length
-    unsigned int position; // current message end position
-
-public:
-    UBXParser(UBXScanner* ubxsc);
-    void updateMessageData();
-    int decodeMessage(std::vector<double>& data);
-    int checkMessage();
-};
-
-class Ublox {
-public:
-enum message_t
+class UBXScanner
 {
-    NAV_POSLLH = (0x01<<8) + 0x02,
-    NAV_STATUS = (0x01<<8) + 0x03,
-    NAV_PVT = (0x01<<8) + 0x07,
-    NAV_COV = (0x01<<8) + 0x36,
-    NAV_VELNED = (0x01<<8) + 0x12,
-};
+public:
+  enum State
+  {
+    Sync1,
+    Sync2,
+    Class,
+    ID,
+    Length1,
+    Length2,
+    Payload,
+    CK_A,
+    CK_B,
+    Done,
+  };
+
+  unsigned char message[UBX_BUFFER_LENGTH];  // Buffer for UBX message
+  unsigned int message_length;               // Length of the received message
 
 private:
-    enum ubx_protocol_bytes {
-        PREAMBLE1 = 0xb5,
-        PREAMBLE2 = 0x62,
-
-        CLASS_CFG = 0x06,
-
-        MSG_CFG_RATE = 0x08
-    };
-
-    struct PACKED CfgNavRate {
-        std::uint16_t measure_rate;
-        std::uint16_t nav_rate;
-        std::uint16_t timeref;
-    };
-
-    struct PACKED UbxHeader {
-        std::uint8_t preamble1;
-        std::uint8_t preamble2;
-        std::uint8_t msg_class;
-        std::uint8_t msg_id;
-        std::uint16_t length;
-    };
-
-    struct PACKED CheckSum {
-        uint8_t CK_A;
-        uint8_t CK_B;
-    };
-
-    std::string spi_device_name;
-    UBXScanner* scanner;
-    UBXParser* parser;   
+  unsigned int position;        // Indicates current buffer offset
+  unsigned int payload_length;  // Length of current message payload
+  State state;                  // Current scanner state
 
 public:
-    Ublox(std::string name = "/dev/spidev0.0");
-    Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
-    ~Ublox();
-    int enableNAV(message_t msg);
-    int disableNAV(message_t msg);
-    int testConnection();
-    /* 32.10.27.1 Navigation/measurement rate settings */
-    int configureSolutionRate(std::uint16_t meas_rate,
-                              std::uint16_t nav_rate = 1,
-                              std::uint16_t timeref = 0);
-    int decodeMessages();
-    int decodeSingleMessage(message_t msg, std::vector<double>& position_data);
+  UBXScanner();
+  unsigned char* getMessage();
+  unsigned int getMessageLength();
+  unsigned int getPosition();
+  void reset();
+  int update(unsigned char data);
+};
+
+class UBXParser
+{
+private:
+  UBXScanner* scanner;     // pointer to the scanner, which finds the messages in the data stream
+  unsigned char* message;  // pointer to the scanner's message buffer
+  unsigned int length;     // current message length
+  unsigned int position;   // current message end position
+
+  uint16_t latest_id_;
+
+public:
+  UBXParser(UBXScanner* ubxsc);
+  void updateMessageData();
+  uint16_t calcId();
+  int checkMessage();
+
+  void decode(NavPayload_STATUS& data);
+  void decode(NavPayload_POSLLH& data);
+  void decode(NavPayload_VELNED& data);
+  void decode(NavPayload_PVT& data);
+  void decode(NavPayload_COV& data);
+};
+
+class Ublox
+{
+public:
+  enum message_t
+  {
+    NAV_STATUS = (0x01 << 8) + 0x03,
+    NAV_POSLLH = (0x01 << 8) + 0x02,
+    NAV_VELNED = (0x01 << 8) + 0x12,
+    NAV_PVT = (0x01 << 8) + 0x07,
+    NAV_COV = (0x01 << 8) + 0x36,
+  };
 
 private:
-    int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void *msg, std::uint16_t size);
-    int _spliceMemory(unsigned char *dest, const void * const src, size_t size, int dest_offset = 0);
-    /* p.171, 32.4 UBX Checksum */
-    CheckSum _calculateCheckSum(unsigned char message[], std::size_t size);
-}; // end of ublox class def
+  enum ubx_protocol_bytes
+  {
+    PREAMBLE1 = 0xb5,
+    PREAMBLE2 = 0x62,
+
+    CLASS_CFG = 0x06,
+
+    MSG_CFG_RATE = 0x08
+  };
+
+  struct PACKED CfgNavRate
+  {
+    std::uint16_t measure_rate;
+    std::uint16_t nav_rate;
+    std::uint16_t timeref;
+  };
+
+  struct PACKED UbxHeader
+  {
+    std::uint8_t preamble1;
+    std::uint8_t preamble2;
+    std::uint8_t msg_class;
+    std::uint8_t msg_id;
+    std::uint16_t length;
+  };
+
+  struct PACKED CheckSum
+  {
+    uint8_t CK_A;
+    uint8_t CK_B;
+  };
+
+  std::string spi_device_name;
+  UBXScanner* scanner;
+  UBXParser* parser;
+
+public:
+  Ublox(std::string name = "/dev/spidev0.0");
+  Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
+  int enableNAV(message_t msg);
+  int disableNAV(message_t msg);
+  int testConnection();
+  /* 32.10.27.1 Navigation/measurement rate settings */
+  int configureSolutionRate(
+    std::uint16_t meas_rate,
+    std::uint16_t nav_rate = 1,
+    std::uint16_t timeref = 0);
+  uint16_t update();
+
+  void decode(NavPayload_STATUS& data);
+  void decode(NavPayload_POSLLH& data);
+  void decode(NavPayload_VELNED& data);
+  void decode(NavPayload_PVT& data);
+  void decode(NavPayload_COV& data);
+
+private:
+  int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void* msg, std::uint16_t size);
+  int _spliceMemory(unsigned char* dest, const void* const src, size_t size, int dest_offset = 0);
+  /* p.171, 32.4 UBX Checksum */
+  CheckSum _calculateCheckSum(unsigned char message[], std::size_t size);
+};  // end of ublox class def
