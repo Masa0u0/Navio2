@@ -350,7 +350,7 @@ Ublox::Ublox(std::string name, UBXScanner* scan, UBXParser* pars) : spi_device_n
 
 }
 
-int Ublox::enableNAV_POSLLH()
+int Ublox::enableNAV(message_t msg)
 {
     constexpr size_t msg_size = 11;
     unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
@@ -371,7 +371,7 @@ int Ublox::enableNAV_POSLLH()
 
     // Payload
     tx[6] = 0x01;  // msgClass
-    tx[7] = 0x02;  // msgID
+    tx[7] = msg - (0x01<<8);  // msgID
     tx[8] = 0x01;  // rate
 
     // Checksum
@@ -385,7 +385,7 @@ int Ublox::enableNAV_POSLLH()
     return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
 }
 
-int Ublox::enableNAV_STATUS()
+int Ublox::disableNAV(message_t msg)
 {
     constexpr size_t msg_size = 11;
     unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
@@ -406,113 +406,8 @@ int Ublox::enableNAV_STATUS()
 
     // Payload
     tx[6] = 0x01;  // msgClass
-    tx[7] = 0x03;  // msgID
-    tx[8] = 0x01;  // rate
-
-    // Checksum
-    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
-    tx[9] = ck.CK_A;
-    tx[10] = ck.CK_B;
-
-    int length = (sizeof(tx)/sizeof(*tx));
-    unsigned char rx[length];
-
-    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
-}
-
-int Ublox::enableNAV_PVT()
-{
-    constexpr size_t msg_size = 11;
-    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
-
-    // Header
-    tx[0] = 0xb5;
-    tx[1] = 0x62;
-
-    // Class
-    tx[2] = 0x06;
-
-    // ID
-    tx[3] = 0x01;
-
-    // Length
-    tx[4] = 0x03;  // 1の位
-    tx[5] = 0x00;  // 16の位
-
-    // Payload
-    tx[6] = 0x01;  // msgClass
-    tx[7] = 0x07;  // msgID
-    tx[8] = 0x01;  // rate
-
-    // Checksum
-    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
-    tx[9] = ck.CK_A;
-    tx[10] = ck.CK_B;
-
-    int length = (sizeof(tx)/sizeof(*tx));
-    unsigned char rx[length];
-
-    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
-}
-
-int Ublox::enableNAV_COV()
-{
-    constexpr size_t msg_size = 11;
-    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
-
-    // Header
-    tx[0] = 0xb5;
-    tx[1] = 0x62;
-
-    // Class
-    tx[2] = 0x06;
-
-    // ID
-    tx[3] = 0x01;
-
-    // Length
-    tx[4] = 0x03;  // 1の位
-    tx[5] = 0x00;  // 16の位
-
-    // Payload
-    tx[6] = 0x01;  // msgClass
-    tx[7] = 0x36;  // msgID
-    tx[8] = 0x01;  // rate
-
-    // Checksum
-    CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
-    tx[9] = ck.CK_A;
-    tx[10] = ck.CK_B;
-
-    int length = (sizeof(tx)/sizeof(*tx));
-    unsigned char rx[length];
-
-    return SPIdev::transfer(spi_device_name.c_str(), tx, rx, length, 200000);
-}
-
-int Ublox::enableNAV_VELNED()
-{
-    constexpr size_t msg_size = 11;
-    unsigned char tx[msg_size];  // UBX-CFG-MSG (p.216)
-
-    // Header
-    tx[0] = 0xb5;
-    tx[1] = 0x62;
-
-    // Class
-    tx[2] = 0x06;
-
-    // ID
-    tx[3] = 0x01;
-
-    // Length
-    tx[4] = 0x03;  // 1の位
-    tx[5] = 0x00;  // 16の位
-
-    // Payload
-    tx[6] = 0x01;  // msgClass
-    tx[7] = 0x12;  // msgID
-    tx[8] = 0x01;  // rate
+    tx[7] = msg - (0x01<<8);  // msgID
+    tx[8] = 0x00;  // TODO: rateを0Hzにすると発行されなくなる？
 
     // Checksum
     CheckSum ck = _calculateCheckSum(tx, msg_size - 2);
@@ -533,31 +428,31 @@ int Ublox::testConnection()
 
     // we do this, so that at least one ubx message is enabled
 
-    if (enableNAV_POSLLH()<0)
+    if (enableNAV(NAV_STATUS)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
     }
 
-    if (enableNAV_STATUS()<0)
+    if (enableNAV(NAV_POSLLH)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
     }
 
-    if (enableNAV_PVT()<0)
+    if (enableNAV(NAV_VELNED)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
     }
 
-    if (enableNAV_COV()<0)
+    if (enableNAV(NAV_PVT)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
     }
 
-    if (enableNAV_VELNED()<0)
+    if (enableNAV(NAV_COV)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
@@ -648,27 +543,31 @@ int Ublox::decodeMessages()
     unsigned char to_gps_data = 0x00, from_gps_data = 0x00;
     std::vector<double> position_data;
 
-    if (enableNAV_POSLLH()<0)
+    if (enableNAV(NAV_STATUS)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
-    if (enableNAV_STATUS()<0)
+    if (enableNAV(NAV_POSLLH)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
-    if (enableNAV_PVT()<0)
+    if (enableNAV(NAV_VELNED)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
-    if (enableNAV_COV()<0)
+    if (enableNAV(NAV_PVT)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
+        return 0;
     }
 
-    if (enableNAV_VELNED()<0)
+    if (enableNAV(NAV_COV)<0)
     {
         std::cerr << "Could not configure ublox over SPI\n";
         return 0;
