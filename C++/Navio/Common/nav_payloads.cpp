@@ -2,7 +2,7 @@
 
 using namespace std;
 
-std::ostream& operator<<(std::ostream& os, const NavPayload_POSLLH& arg)
+ostream& operator<<(ostream& os, const NavPayload_POSLLH& arg)
 {
   os << "Longitude: " << arg.lon << "[deg]" << endl;
   os << "Latitude: " << arg.lat << "[deg]" << endl;
@@ -10,14 +10,14 @@ std::ostream& operator<<(std::ostream& os, const NavPayload_POSLLH& arg)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const NavPayload_STATUS& arg)
+ostream& operator<<(ostream& os, const NavPayload_STATUS& arg)
 {
   os << "GPSfix Type: " << arg.gpsFix << endl;
   os << "Navigation Status Flags: " << arg.flags << endl;
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const NavPayload_PVT& arg)
+ostream& operator<<(ostream& os, const NavPayload_PVT& arg)
 {
   os << "Longitude: " << arg.lon << "[deg]" << endl;
   os << "Latitude: " << arg.lat << "[deg]" << endl;
@@ -28,7 +28,7 @@ std::ostream& operator<<(std::ostream& os, const NavPayload_PVT& arg)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const NavPayload_VELNED& arg)
+ostream& operator<<(ostream& os, const NavPayload_VELNED& arg)
 {
   os << "North velocity component: " << arg.velN << "[m/s]" << endl;
   os << "East velocity component: " << arg.velE << "[m/s]" << endl;
@@ -36,7 +36,7 @@ std::ostream& operator<<(std::ostream& os, const NavPayload_VELNED& arg)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const NavPayload_COV& arg)
+ostream& operator<<(ostream& os, const NavPayload_COV& arg)
 {
   os << "Position covariance matrix value p_NN: " << arg.posCovNN << "[m^2]" << endl;
   os << "Position covariance matrix value p_NE: " << arg.posCovNE << "[m^2]" << endl;
