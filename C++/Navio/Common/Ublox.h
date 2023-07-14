@@ -96,9 +96,17 @@ public:
 
   int enableNAV(message_t msg);
   int disableNAV(message_t msg);
+
+  /**
+   * @brief Test connection with the receiver. Function testConnection() waits for a ubx protocol
+   * message and checks it. If there's at least one correct message in the first 300 symbols the
+   * test is passed.
+   */
   int testConnection();
+
   /* 32.10.27.1 Navigation/measurement rate settings */
   int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t timeref = 0);
+
   uint16_t update();
 
   void decode(NavPayload_POSLLH& data) const;
