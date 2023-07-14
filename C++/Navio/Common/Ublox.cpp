@@ -3,8 +3,6 @@
 #include "Ublox.h"
 #include "Util.h"
 
-#define PREAMBLE_OFFSET 2
-
 using namespace std;
 
 UBXScanner::UBXScanner()
@@ -92,6 +90,8 @@ int UBXScanner::update(uint8_t data)
       break;
 
     case Done:
+      break;
+
     default:
       break;
   }
@@ -103,22 +103,11 @@ UBXParser::UBXParser(UBXScanner* ubxsc) : scanner_(ubxsc), message_(ubxsc->getMe
 {
 }
 
-// This function updates message length and end position in the scanner's buffer
-
 void UBXParser::updateMessageData()
 {
   length_ = scanner_->getMessageLength();
   position_ = scanner_->getPosition();
 }
-
-// Function decodeMessage() returns 1 in case of a successful message verification.
-// It looks through the buffer, checks 2 ubx protocol sync chars (0xb5 and 0x62),
-// counts the checksum and if everything is alright, defines the message type by id.
-// In this example we only decode two messages: Nav-Status and Nav-Posllh. It is possible to add
-// more id cases
-
-// datasheet:
-// https://content.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_UBX-13003221.pdf
 
 uint16_t UBXParser::calcId()
 {
@@ -143,12 +132,9 @@ uint16_t UBXParser::calcId()
     return 0;
 
   // If we got everything right, then it's time to decide, what type of message this is
-  return latest_id_ = (*(message_ + pos + 2)) << 8
-                      | (*(message_ + pos + 3));  // ID is a two-byte number with little endianness
+  // ID is a two-byte number with little endianness
+  return latest_id_ = (*(message_ + pos + 2)) << 8 | (*(message_ + pos + 3));
 }
-
-// Function checkMessage() returns 1 if the message, currently stored in the buffer is valid.
-// Validity means, that the necessary sync chars are present and the checksum test is passed
 
 int UBXParser::checkMessage()
 {
@@ -211,8 +197,7 @@ Ublox::Ublox(string name, UBXScanner* scan, UBXParser* pars)
 
 int Ublox::enableNAV(message_t msg)
 {
-  constexpr size_t msg_size = 11;
-  uint8_t tx[msg_size];  // UBX-CFG-MSG (p.216)
+  uint8_t tx[kConfigureMessageSize];  // UBX-CFG-MSG (p.216)
 
   // Header
   tx[0] = 0xb5;
@@ -234,20 +219,19 @@ int Ublox::enableNAV(message_t msg)
   tx[8] = 0x01;               // rate
 
   // Checksum
-  CheckSum ck = calculateCheckSum(tx, msg_size - 2);
+  CheckSum ck = calculateCheckSum(tx, kConfigureMessageSize - 2);
   tx[9] = ck.CK_A;
   tx[10] = ck.CK_B;
 
-  int length_ = (sizeof(tx) / sizeof(*tx));
-  uint8_t rx[length_];
+  const uint32_t length = (sizeof(tx) / sizeof(*tx));
+  uint8_t rx[length];
 
-  return SPIdev::transfer(spi_device_name_.c_str(), tx, rx, length_, 200000);
+  return SPIdev::transfer(spi_device_name_.c_str(), tx, rx, length, kSpiSpeedHz);
 }
 
 int Ublox::disableNAV(message_t msg)
 {
-  constexpr size_t msg_size = 11;
-  uint8_t tx[msg_size];  // UBX-CFG-MSG (p.216)
+  uint8_t tx[kConfigureMessageSize];  // UBX-CFG-MSG (p.216)
 
   // Header
   tx[0] = 0xb5;
@@ -269,14 +253,14 @@ int Ublox::disableNAV(message_t msg)
   tx[8] = 0x00;               // rateを0Hzにすると発行されなくなる
 
   // Checksum
-  CheckSum ck = calculateCheckSum(tx, msg_size - 2);
+  CheckSum ck = calculateCheckSum(tx, kConfigureMessageSize - 2);
   tx[9] = ck.CK_A;
   tx[10] = ck.CK_B;
 
   int length_ = (sizeof(tx) / sizeof(*tx));
   uint8_t rx[length_];
 
-  return SPIdev::transfer(spi_device_name_.c_str(), tx, rx, length_, 200000);
+  return SPIdev::transfer(spi_device_name_.c_str(), tx, rx, length_, kSpiSpeedHz);
 }
 
 int Ublox::testConnection()
@@ -285,13 +269,12 @@ int Ublox::testConnection()
   int count = 0;
   uint8_t to_gps_data = 0x00, from_gps_data = 0x00;
 
-  // we do this, so that at least one ubx message is enabled
-
-  while (count < UBX_BUFFER_LENGTH / 2)
+  // We do this, so that at least one ubx message is enabled
+  while (count < kUbxBufferLength / 2)
   {
     // From now on, we will send zeroes to the receiver, which it will ignore
     // However, we are simultaneously getting useful information from it
-    SPIdev::transfer(spi_device_name_.c_str(), &to_gps_data, &from_gps_data, 1, 200000);
+    SPIdev::transfer(spi_device_name_.c_str(), &to_gps_data, &from_gps_data, 1, kSpiSpeedHz);
 
     // Scanner checks the message structure with every byte received
     status = scanner_->update(from_gps_data);
@@ -337,7 +320,7 @@ uint16_t Ublox::update()
   {
     // From now on, we will send zeroes to the receiver, which it will ignore
     // However, we are simultaneously getting useful information from it
-    SPIdev::transfer(spi_device_name_.c_str(), &to_gps_data, &from_gps_data, 1, 200000);
+    SPIdev::transfer(spi_device_name_.c_str(), &to_gps_data, &from_gps_data, 1, kSpiSpeedHz);
 
     // Scanner checks the message structure with every byte received
     status = scanner_->update(from_gps_data);
@@ -348,7 +331,7 @@ uint16_t Ublox::update()
   return parser_->calcId();
 }
 
-void Ublox::decode(NavPayload_POSLLH& data)
+void Ublox::decode(NavPayload_POSLLH& data) const
 {
   if (parser_->getLatestId() != Ublox::NAV_POSLLH)
   {
@@ -364,7 +347,7 @@ void Ublox::decode(NavPayload_POSLLH& data)
   data.hMSL = ((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22))) * 1e-3;
 }
 
-void Ublox::decode(NavPayload_STATUS& data)
+void Ublox::decode(NavPayload_STATUS& data) const
 {
   if (parser_->getLatestId() != Ublox::NAV_STATUS)
   {
@@ -379,7 +362,7 @@ void Ublox::decode(NavPayload_STATUS& data)
   data.flags = *(s + 11);
 }
 
-void Ublox::decode(NavPayload_PVT& data)
+void Ublox::decode(NavPayload_PVT& data) const
 {
   if (parser_->getLatestId() != Ublox::NAV_PVT)
   {
@@ -398,7 +381,7 @@ void Ublox::decode(NavPayload_PVT& data)
   data.velD = ((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62))) * 1e-3;
 }
 
-void Ublox::decode(NavPayload_VELNED& data)
+void Ublox::decode(NavPayload_VELNED& data) const
 {
   if (parser_->getLatestId() != Ublox::NAV_VELNED)
   {
@@ -414,7 +397,7 @@ void Ublox::decode(NavPayload_VELNED& data)
   data.velD = ((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
 }
 
-void Ublox::decode(NavPayload_COV& data)
+void Ublox::decode(NavPayload_COV& data) const
 {
   if (parser_->getLatestId() != Ublox::NAV_COV)
   {
@@ -453,7 +436,7 @@ void Ublox::decode(NavPayload_COV& data)
 
 int Ublox::sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size)
 {
-  uint8_t buffer[UBX_BUFFER_LENGTH];
+  uint8_t buffer[kUbxBufferLength];
 
   UbxHeader header;
   header.preamble1 = PREAMBLE1;
@@ -462,13 +445,13 @@ int Ublox::sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t si
   header.msg_id = msg_id;
   header.length = size;
 
-  int offset = spliceMemory(buffer, &header, sizeof(UbxHeader));
+  auto offset = spliceMemory(buffer, &header, sizeof(UbxHeader));
   offset = spliceMemory(buffer, msg, size, offset);
 
   auto checksum = calculateCheckSum(buffer, offset);
   offset = spliceMemory(buffer, &checksum, sizeof(CheckSum), offset);
 
-  return SPIdev::transfer(spi_device_name_.c_str(), buffer, nullptr, offset, 200000);
+  return SPIdev::transfer(spi_device_name_.c_str(), buffer, nullptr, offset, kSpiSpeedHz);
 }
 
 int Ublox::spliceMemory(uint8_t* dest, const void* const src, size_t size, int dest_offset)
@@ -477,15 +460,15 @@ int Ublox::spliceMemory(uint8_t* dest, const void* const src, size_t size, int d
   return dest_offset + size;
 }
 
-Ublox::CheckSum Ublox::calculateCheckSum(uint8_t* message, size_t size)
+Ublox::CheckSum Ublox::calculateCheckSum(uint8_t* message, size_t size) const
 {
-  CheckSum checkSum;
-  checkSum.CK_A = checkSum.CK_B = 0;
+  CheckSum checksum;
+  checksum.CK_A = checksum.CK_B = 0;
 
-  for (int i = PREAMBLE_OFFSET; i < size; i++)
+  for (int i = kPreambleOffset; i < size; i++)
   {
-    checkSum.CK_A += message[i];
-    checkSum.CK_B += checkSum.CK_A;
+    checksum.CK_A += message[i];
+    checksum.CK_B += checksum.CK_A;
   }
-  return checkSum;
+  return checksum;
 }

@@ -7,7 +7,10 @@
 
 #define PACKED __attribute__((__packed__))
 
-static constexpr int UBX_BUFFER_LENGTH = 1024;
+static constexpr uint32_t kUbxBufferLength = 1024;
+static constexpr uint32_t kPreambleOffset = 2;
+static constexpr uint32_t kSpiSpeedHz = 200000;
+static constexpr uint32_t kConfigureMessageSize = 11;
 
 class UBXScanner
 {
@@ -28,7 +31,7 @@ public:
 
   explicit UBXScanner();
 
-  uint8_t* getMessage() ;
+  uint8_t* getMessage();
   uint32_t getMessageLength() const;
   uint32_t getPosition() const;
 
@@ -36,11 +39,11 @@ public:
   int update(uint8_t data);
 
 private:
-  uint8_t message_[UBX_BUFFER_LENGTH];  // Buffer for UBX message
-  uint32_t message_length_;             // Length of the received message
-  uint32_t position_;                   // Indicates current buffer offset
-  uint32_t payload_length_;             // Length of current message payload
-  State state_;                         // Current scanner state
+  uint8_t message_[kUbxBufferLength];  // Buffer for UBX message
+  uint32_t message_length_;            // Length of the received message
+  uint32_t position_;                  // Indicates current buffer offset
+  uint32_t payload_length_;            // Length of current message payload
+  State state_;                        // Current scanner state
 };
 
 class UBXParser
@@ -48,8 +51,13 @@ class UBXParser
 public:
   explicit UBXParser(UBXScanner* ubxsc);
 
+  /* Updates message length and end position in the scanner's buffer. */
   void updateMessageData();
   uint16_t calcId();
+  /**
+   * @brief Returns 1 if the message, currently stored in the buffer is valid. Validity means, that
+   * the necessary sync chars are present and the checksum test is passed.
+   */
   int checkMessage();
 
   uint8_t* getMessage() const;
@@ -66,6 +74,11 @@ private:
   uint16_t latest_id_;
 };
 
+/**
+ * @brief Ublox handler.
+ * datasheet:
+ * https://content.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_UBX-13003221.pdf
+ */
 class Ublox
 {
 public:
@@ -78,8 +91,8 @@ public:
     NAV_COV = (0x01 << 8) + 0x36,
   };
 
-  Ublox(std::string name = "/dev/spidev0.0");
-  Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
+  explicit Ublox(std::string name = "/dev/spidev0.0");
+  explicit Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
 
   int enableNAV(message_t msg);
   int disableNAV(message_t msg);
@@ -88,11 +101,11 @@ public:
   int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t timeref = 0);
   uint16_t update();
 
-  void decode(NavPayload_POSLLH& data);
-  void decode(NavPayload_STATUS& data);
-  void decode(NavPayload_PVT& data);
-  void decode(NavPayload_VELNED& data);
-  void decode(NavPayload_COV& data);
+  void decode(NavPayload_POSLLH& data) const;
+  void decode(NavPayload_STATUS& data) const;
+  void decode(NavPayload_PVT& data) const;
+  void decode(NavPayload_VELNED& data) const;
+  void decode(NavPayload_COV& data) const;
 
 private:
   enum ubx_protocol_bytes
@@ -133,5 +146,5 @@ private:
   int spliceMemory(uint8_t* dest, const void* const src, size_t size, int dest_offset = 0);
 
   /* p.171, 32.4 UBX Checksum. */
-  CheckSum calculateCheckSum(uint8_t message[], size_t size);
+  CheckSum calculateCheckSum(uint8_t* message, size_t size) const;
 };
