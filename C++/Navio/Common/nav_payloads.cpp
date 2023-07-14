@@ -6,7 +6,7 @@ std::ostream& operator<<(std::ostream& os, const NavPayload_POSLLH& arg)
 {
   os << "Longitude: " << arg.lon << "[deg]" << endl;
   os << "Latitude: " << arg.lat << "[deg]" << endl;
-  os << "hMSL: " << arg.hMSL << "[m]" << endl;
+  os << "Height above mean sea level: " << arg.hMSL << "[m]" << endl;
   return os;
 }
 
@@ -21,7 +21,7 @@ std::ostream& operator<<(std::ostream& os, const NavPayload_PVT& arg)
 {
   os << "Longitude: " << arg.lon << "[deg]" << endl;
   os << "Latitude: " << arg.lat << "[deg]" << endl;
-  os << "hMSL: " << arg.hMSL << "[m]" << endl;
+  os << "Height above mean sea level: " << arg.hMSL << "[m]" << endl;
   os << "NED north velocity: " << arg.velN << "[m/s]" << endl;
   os << "NED east velocity: " << arg.velE << "[m/s]" << endl;
   os << "NED down velocity: " << arg.velD << "[m/s]" << endl;
