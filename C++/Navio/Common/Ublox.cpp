@@ -195,6 +195,15 @@ Ublox::Ublox(string name, UBXScanner* scan, UBXParser* pars)
 {
 }
 
+Ublox::~Ublox()
+{
+  disableNAV(NAV_POSLLH);
+  disableNAV(NAV_STATUS);
+  disableNAV(NAV_PVT);
+  disableNAV(NAV_VELNED);
+  disableNAV(NAV_COV);
+}
+
 int Ublox::enableNAV(message_t msg)
 {
   uint8_t tx[kConfigureMessageSize];  // UBX-CFG-MSG (p.216)
