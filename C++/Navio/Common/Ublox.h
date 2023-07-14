@@ -28,9 +28,10 @@ public:
 
   explicit UBXScanner();
 
-  uint8_t* getMessage();
-  uint32_t getMessageLength();
-  uint32_t getPosition();
+  uint8_t* getMessage() ;
+  uint32_t getMessageLength() const;
+  uint32_t getPosition() const;
+
   void reset();
   int update(uint8_t data);
 
@@ -51,14 +52,14 @@ public:
   uint16_t calcId();
   int checkMessage();
 
-  void decode(NavPayload_STATUS& data);
-  void decode(NavPayload_POSLLH& data);
-  void decode(NavPayload_VELNED& data);
-  void decode(NavPayload_PVT& data);
-  void decode(NavPayload_COV& data);
+  uint8_t* getMessage() const;
+  uint32_t getLength() const;
+  uint32_t getPosition() const;
+  uint16_t getLatestId() const;
 
 private:
   UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
+
   uint8_t* message_;     // Pointer to the scanner's message buffer
   uint32_t length_;      // Current message length
   uint32_t position_;    // Current message end position
@@ -70,10 +71,10 @@ class Ublox
 public:
   enum message_t
   {
-    NAV_STATUS = (0x01 << 8) + 0x03,
     NAV_POSLLH = (0x01 << 8) + 0x02,
-    NAV_VELNED = (0x01 << 8) + 0x12,
+    NAV_STATUS = (0x01 << 8) + 0x03,
     NAV_PVT = (0x01 << 8) + 0x07,
+    NAV_VELNED = (0x01 << 8) + 0x12,
     NAV_COV = (0x01 << 8) + 0x36,
   };
 
@@ -87,10 +88,10 @@ public:
   int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t timeref = 0);
   uint16_t update();
 
-  void decode(NavPayload_STATUS& data);
   void decode(NavPayload_POSLLH& data);
-  void decode(NavPayload_VELNED& data);
+  void decode(NavPayload_STATUS& data);
   void decode(NavPayload_PVT& data);
+  void decode(NavPayload_VELNED& data);
   void decode(NavPayload_COV& data);
 
 private:
