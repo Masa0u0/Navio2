@@ -1,54 +1,13 @@
-/*
-GPS driver dcode is placed under the BSD license.
-Written by Egor Fedorov (egor.fedorov@emlid.com)
-Copyright (c) 2014, Emlid Limited
-All rights reserved.
+#pragma once
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Emlid Limited nor the names of its contributors
-      may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL EMLID LIMITED BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-// #define _XOPEN_SOURCE 600
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
 #include <string>
-#include <stdint.h>
-#include <vector>
-#include "SPIdev.h"
 
+#include "./SPIdev.h"
 #include "./nav_payloads.hpp"
 
 #define PACKED __attribute__((__packed__))
 
-static const int UBX_BUFFER_LENGTH = 1024;
+static constexpr int UBX_BUFFER_LENGTH = 1024;
 
 class UBXScanner
 {
@@ -67,35 +26,27 @@ public:
     Done,
   };
 
-  unsigned char message[UBX_BUFFER_LENGTH];  // Buffer for UBX message
-  unsigned int message_length;               // Length of the received message
+  explicit UBXScanner();
+
+  uint8_t* getMessage();
+  uint32_t getMessageLength();
+  uint32_t getPosition();
+  void reset();
+  int update(uint8_t data);
 
 private:
-  unsigned int position;        // Indicates current buffer offset
-  unsigned int payload_length;  // Length of current message payload
-  State state;                  // Current scanner state
-
-public:
-  UBXScanner();
-  unsigned char* getMessage();
-  unsigned int getMessageLength();
-  unsigned int getPosition();
-  void reset();
-  int update(unsigned char data);
+  uint8_t message_[UBX_BUFFER_LENGTH];  // Buffer for UBX message
+  uint32_t message_length_;             // Length of the received message
+  uint32_t position_;                   // Indicates current buffer offset
+  uint32_t payload_length_;             // Length of current message payload
+  State state_;                         // Current scanner state
 };
 
 class UBXParser
 {
-private:
-  UBXScanner* scanner;     // pointer to the scanner, which finds the messages in the data stream
-  unsigned char* message;  // pointer to the scanner's message buffer
-  unsigned int length;     // current message length
-  unsigned int position;   // current message end position
-
-  uint16_t latest_id_;
-
 public:
-  UBXParser(UBXScanner* ubxsc);
+  explicit UBXParser(UBXScanner* ubxsc);
+
   void updateMessageData();
   uint16_t calcId();
   int checkMessage();
@@ -105,6 +56,13 @@ public:
   void decode(NavPayload_VELNED& data);
   void decode(NavPayload_PVT& data);
   void decode(NavPayload_COV& data);
+
+private:
+  UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
+  uint8_t* message_;     // Pointer to the scanner's message buffer
+  uint32_t length_;      // Current message length
+  uint32_t position_;    // Current message end position
+  uint16_t latest_id_;
 };
 
 class Ublox
@@ -119,54 +77,14 @@ public:
     NAV_COV = (0x01 << 8) + 0x36,
   };
 
-private:
-  enum ubx_protocol_bytes
-  {
-    PREAMBLE1 = 0xb5,
-    PREAMBLE2 = 0x62,
-
-    CLASS_CFG = 0x06,
-
-    MSG_CFG_RATE = 0x08
-  };
-
-  struct PACKED CfgNavRate
-  {
-    std::uint16_t measure_rate;
-    std::uint16_t nav_rate;
-    std::uint16_t timeref;
-  };
-
-  struct PACKED UbxHeader
-  {
-    std::uint8_t preamble1;
-    std::uint8_t preamble2;
-    std::uint8_t msg_class;
-    std::uint8_t msg_id;
-    std::uint16_t length;
-  };
-
-  struct PACKED CheckSum
-  {
-    uint8_t CK_A;
-    uint8_t CK_B;
-  };
-
-  std::string spi_device_name;
-  UBXScanner* scanner;
-  UBXParser* parser;
-
-public:
   Ublox(std::string name = "/dev/spidev0.0");
   Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
+
   int enableNAV(message_t msg);
   int disableNAV(message_t msg);
   int testConnection();
   /* 32.10.27.1 Navigation/measurement rate settings */
-  int configureSolutionRate(
-    std::uint16_t meas_rate,
-    std::uint16_t nav_rate = 1,
-    std::uint16_t timeref = 0);
+  int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t timeref = 0);
   uint16_t update();
 
   void decode(NavPayload_STATUS& data);
@@ -176,8 +94,43 @@ public:
   void decode(NavPayload_COV& data);
 
 private:
-  int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void* msg, std::uint16_t size);
-  int _spliceMemory(unsigned char* dest, const void* const src, size_t size, int dest_offset = 0);
-  /* p.171, 32.4 UBX Checksum */
-  CheckSum _calculateCheckSum(unsigned char message[], std::size_t size);
-};  // end of ublox class def
+  enum ubx_protocol_bytes
+  {
+    PREAMBLE1 = 0xb5,
+    PREAMBLE2 = 0x62,
+    CLASS_CFG = 0x06,
+    MSG_CFG_RATE = 0x08,
+  };
+
+  struct PACKED CfgNavRate
+  {
+    uint16_t measure_rate;
+    uint16_t nav_rate;
+    uint16_t timeref;
+  };
+
+  struct PACKED UbxHeader
+  {
+    uint8_t preamble1;
+    uint8_t preamble2;
+    uint8_t msg_class;
+    uint8_t msg_id;
+    uint16_t length;
+  };
+
+  struct PACKED CheckSum
+  {
+    uint8_t CK_A;
+    uint8_t CK_B;
+  };
+
+  std::string spi_device_name_;
+  UBXScanner* scanner_;
+  UBXParser* parser_;
+
+  int sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size);
+  int spliceMemory(uint8_t* dest, const void* const src, size_t size, int dest_offset = 0);
+
+  /* p.171, 32.4 UBX Checksum. */
+  CheckSum calculateCheckSum(uint8_t message[], size_t size);
+};

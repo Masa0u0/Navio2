@@ -1,20 +1,5 @@
-/*
-Provided to you by Emlid Ltd (c) 2014.
-twitter.com/emlidtech || www.emlid.com || info@emlid.com
+#include <vector>
 
-Example: Receive position information with GPS driver onboard of Navio shield for Raspberry Pi.
-
-Ublox GPS receiver is connected as an SPI device 0.0(/dev/spidev0.0).
-The receiver sends information over SPI in an endless stream,
-this program is intended to show, how to capture ubx protocol messages
-from the stream and extract useful information from them.
-
-To run this example navigate to the directory containing it and run following commands:
-make
-./gps
-*/
-
-//#define _XOPEN_SOURCE 600
 #include <Common/Ublox.h>
 #include <Common/Util.h>
 
