@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
 
   // Configure GPS messages
   gps.enableNAV(Ublox::NAV_POSLLH);
-  gps.disableNAV(Ublox::NAV_STATUS);
+  gps.enableNAV(Ublox::NAV_STATUS);
   gps.disableNAV(Ublox::NAV_PVT);
   gps.disableNAV(Ublox::NAV_VELNED);
   gps.disableNAV(Ublox::NAV_COV);
