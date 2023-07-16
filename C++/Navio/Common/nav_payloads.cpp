@@ -12,8 +12,8 @@ ostream& operator<<(ostream& os, const NavPayload_POSLLH& arg)
 
 ostream& operator<<(ostream& os, const NavPayload_STATUS& arg)
 {
-  os << "GPSfix Type: " << arg.gpsFix << endl;
-  os << "Navigation Status Flags: " << arg.flags << endl;
+  os << "GPSfix Type: " << static_cast<int>(arg.gpsFix) << endl;
+  os << "Navigation Status Flags: " << static_cast<int>(arg.flags) << endl;
   return os;
 }
 
