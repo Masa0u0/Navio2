@@ -8,65 +8,73 @@
 
 int main()
 {
-    if (get_navio_version() == NAVIO2) {
+  if (get_navio_version() == NAVIO2)
+  {
+    fprintf(stderr, "No FRAM on NAVIO2\n");
+    return 1;
+  }
 
-        fprintf(stderr, "No FRAM on NAVIO2\n");
-        return 1;
-    }
+  uint8_t dev_address = 0b1010000;
+  uint16_t reg_address = 0;
+  uint8_t data = 0xCC;
+  bool flag = true;
 
+  if (check_apm())
+  {
+    return 1;
+  }
 
-	uint8_t dev_address = 0b1010000;
-	uint16_t reg_address = 0;
-	uint8_t data = 0xCC;
-	bool flag = true;
+  printf("Fram memory Write/Read test!\nWe will write value 0xCC to the address 0 of fram memory, "
+         "and then read it:\n");
 
-    if (check_apm()) {
-        return 1;
-    }
+  MB85RC256 fram;
 
-	printf("Fram memory Write/Read test!\nWe will write value 0xCC to the address 0 of fram memory, and then read it:\n");
+  printf("Writing data...\n");
 
-	MB85RC256 fram;
+  fram.writeByte(reg_address, data);
 
-	printf("Writing data...\n");
+  data = 0x00;
 
-    fram.writeByte(reg_address, data);
+  printf("Reading data...\n");
 
-	data = 0x00;
+  fram.readByte(reg_address, &data);
 
-	printf("Reading data...\n");
+  printf("Data, read from address 0 is %x\n", data);
 
-	fram.readByte(reg_address, &data);
+  if (data != 0xCC)
+    flag = false;
 
-	printf("Data, read from address 0 is %x\n", data);
+  // multiple write and read functionality test
 
-	if (data != 0xCC) flag = false;
+  printf("Multiple read/write functionality test!\nWe will write values 0xAA, 0xBB, 0xCC to the "
+         "addresses 0, 1, 2 of the fram memory \nand then read it:\n");
 
-	// multiple write and read functionality test
+  uint8_t a[3] = { 0xAA, 0xBB, 0xCC };
 
-	printf("Multiple read/write functionality test!\nWe will write values 0xAA, 0xBB, 0xCC to the addresses 0, 1, 2 of the fram memory \nand then read it:\n");
+  printf("Writing data...\n");
 
-	uint8_t a[3] = {0xAA, 0xBB, 0xCC};
+  fram.writeBytes(reg_address, 3, a);
 
-	printf("Writing data...\n");
+  for (int i = 0; i < 3; i++)
+    a[i] = 0;
 
-	fram.writeBytes(reg_address, 3, a);
+  printf("Reading data...\n");
 
-	for (int i=0; i<3; i++) a[i] = 0;
+  fram.readBytes(reg_address, 3, a);
 
-	printf("Reading data...\n");
+  printf("Data, read from the addresses 0, 1, 2:\n%x %x %x\n", a[0], a[1], a[2]);
 
-	fram.readBytes(reg_address, 3, a);
+  if ((a[0] != 0xAA) || (a[1] != 0xBB) || (a[2] != 0xCC))
+    flag = false;
 
-	printf("Data, read from the addresses 0, 1, 2:\n%x %x %x\n", a[0], a[1], a[2]);
+  if (flag == true)
+  {
+    printf("Memory test passed succesfully\n");
+  }
+  else
+  {
+    printf("Memory test not passed\n");
+  }
 
-	if ((a[0] != 0xAA) || (a[1] != 0xBB) || (a[2] != 0xCC)) flag = false;
-
-	if (flag == true) {
-		printf("Memory test passed succesfully\n");
-	} else {
-		printf("Memory test not passed\n");
-	}
-
-	return 0;
+  return 0;
 }

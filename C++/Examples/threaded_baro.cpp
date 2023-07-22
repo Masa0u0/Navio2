@@ -16,51 +16,54 @@ sudo ./threaded_baro
 #include <stdio.h>
 #include <pthread.h>
 
-void * acquireBarometerData(void * barom)
+void* acquireBarometerData(void* barom)
 {
-    MS5611* barometer = (MS5611*)barom;
+  MS5611* barometer = (MS5611*)barom;
 
-    while (true) {
-        barometer->refreshPressure();
-        usleep(10000); // Waiting for pressure data ready
-        barometer->readPressure();
+  while (true)
+  {
+    barometer->refreshPressure();
+    usleep(10000);  // Waiting for pressure data ready
+    barometer->readPressure();
 
-        barometer->refreshTemperature();
-        usleep(10000); // Waiting for temperature data ready
-        barometer->readTemperature();
+    barometer->refreshTemperature();
+    usleep(10000);  // Waiting for temperature data ready
+    barometer->readTemperature();
 
-        barometer->calculatePressureAndTemperature();
+    barometer->calculatePressureAndTemperature();
 
-        //sleep(0.5);
-    }
+    // sleep(0.5);
+  }
 
-    pthread_exit(NULL);
+  pthread_exit(NULL);
 }
 
 int main()
 {
-    if (check_apm()) {
-        return 1;
-    }
-
-    MS5611 baro;
-    baro.initialize();
-
-    pthread_t baro_thread;
-
-    if(pthread_create(&baro_thread, NULL, acquireBarometerData, (void *)&baro))
-    {
-        printf("Error: Failed to create barometer thread\n");
-        return 0;
-    }
-
-    while(true)
-    {
-        printf("Temperature(C): %f Pressure(millibar): %f\n", baro.getTemperature(), baro.getPressure());
-        sleep(1);
-    }
-
-    pthread_exit(NULL);
-
+  if (check_apm())
+  {
     return 1;
+  }
+
+  MS5611 baro;
+  baro.initialize();
+
+  pthread_t baro_thread;
+
+  if (pthread_create(&baro_thread, NULL, acquireBarometerData, (void*)&baro))
+  {
+    printf("Error: Failed to create barometer thread\n");
+    return 0;
+  }
+
+  while (true)
+  {
+    printf(
+      "Temperature(C): %f Pressure(millibar): %f\n", baro.getTemperature(), baro.getPressure());
+    sleep(1);
+  }
+
+  pthread_exit(NULL);
+
+  return 1;
 }

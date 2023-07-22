@@ -8,41 +8,40 @@
 
 #define READ_FAILED -1
 
-std::unique_ptr <RCInput> get_rcin()
+std::unique_ptr<RCInput> get_rcin()
 {
-    if (get_navio_version() == NAVIO2)
-    {
-        auto ptr = std::unique_ptr <RCInput>{ new RCInput_Navio2() };
-        return ptr;
-    } else
-    {
-        auto ptr = std::unique_ptr <RCInput>{ new RCInput_Navio() };
-        return ptr;
-    }
-
+  if (get_navio_version() == NAVIO2)
+  {
+    auto ptr = std::unique_ptr<RCInput>{ new RCInput_Navio2() };
+    return ptr;
+  }
+  else
+  {
+    auto ptr = std::unique_ptr<RCInput>{ new RCInput_Navio() };
+    return ptr;
+  }
 }
 
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    if (check_apm()) {
-        return 1;
-    }
+  if (check_apm())
+  {
+    return 1;
+  }
 
-    auto rcin = get_rcin();
+  auto rcin = get_rcin();
 
-    rcin->initialize();
+  rcin->initialize();
 
-    while (true)
-    {
-        int period = rcin->read(2);
-        if (period == READ_FAILED)
-            return EXIT_FAILURE;
-        printf("%d\n", period);
-        
-        sleep(1);
-    }
+  while (true)
+  {
+    int period = rcin->read(2);
+    if (period == READ_FAILED)
+      return EXIT_FAILURE;
+    printf("%d\n", period);
 
-    return 0;
+    sleep(1);
+  }
+
+  return 0;
 }
-

@@ -16,30 +16,33 @@ make
 
 int main()
 {
-    MS5611 barometer;
+  MS5611 barometer;
 
-    if (check_apm()) {
-        return 1;
-    }
+  if (check_apm())
+  {
+    return 1;
+  }
 
-    barometer.initialize();
+  barometer.initialize();
 
-    while (true) {
-        barometer.refreshPressure();
-        usleep(10000); // Waiting for pressure data ready
-        barometer.readPressure();
+  while (true)
+  {
+    barometer.refreshPressure();
+    usleep(10000);  // Waiting for pressure data ready
+    barometer.readPressure();
 
-        barometer.refreshTemperature();
-        usleep(10000); // Waiting for temperature data ready
-        barometer.readTemperature();
+    barometer.refreshTemperature();
+    usleep(10000);  // Waiting for temperature data ready
+    barometer.readTemperature();
 
-        barometer.calculatePressureAndTemperature();
+    barometer.calculatePressureAndTemperature();
 
-        printf("Temperature(C): %f Pressure(millibar): %f\n", 
-                barometer.getTemperature(), barometer.getPressure());
-                
-        sleep(1);
-    }
+    printf(
+      "Temperature(C): %f Pressure(millibar): %f\n", barometer.getTemperature(),
+      barometer.getPressure());
 
-    return 0;
+    sleep(1);
+  }
+
+  return 0;
 }
