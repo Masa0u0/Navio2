@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <cstdio>
+#include <iostream>
 
 #include <Navio2/RCInput_Navio2.h>
 #include <Navio+/RCInput_Navio.h>
@@ -8,16 +9,18 @@
 
 #define READ_FAILED -1
 
-std::unique_ptr<RCInput> get_rcin()
+using namespace std;
+
+unique_ptr<RCInput> get_rcin()
 {
   if (get_navio_version() == NAVIO2)
   {
-    auto ptr = std::unique_ptr<RCInput>{ new RCInput_Navio2() };
+    auto ptr = unique_ptr<RCInput>{ new RCInput_Navio2() };
     return ptr;
   }
   else
   {
-    auto ptr = std::unique_ptr<RCInput>{ new RCInput_Navio() };
+    auto ptr = unique_ptr<RCInput>{ new RCInput_Navio() };
     return ptr;
   }
 }
@@ -35,12 +38,15 @@ int main(int argc, char* argv[])
 
   while (true)
   {
-    int period = rcin->read(2);
-    if (period == READ_FAILED)
-      return EXIT_FAILURE;
-    printf("%d\n", period);
+    for (int ch = 0; ch < 14; ++ch)
+    {
+      int period = rcin->read(ch);
+      if (period == READ_FAILED)
+        return EXIT_FAILURE;
+      cout << "Channel: " << ch << ", Period: " << period << endl;
+    }
 
-    sleep(1);
+    sleep(0.1);
   }
 
   return 0;
