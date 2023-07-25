@@ -45,8 +45,8 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
       cout << "Channel: " << ch << ", Period: " << period << endl;
     }
-
-    sleep(0.1);
+    cout << endl;
+    sleep(1);
   }
 
   return 0;
