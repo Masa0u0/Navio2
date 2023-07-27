@@ -26,11 +26,11 @@ int main(int argc, char* argv[])
   NavPayload_COV cov;
 
   // Configure GPS messages
-  gps.enableNAV(Ublox::NAV_POSLLH);
-  gps.enableNAV(Ublox::NAV_STATUS);
-  gps.disableNAV(Ublox::NAV_PVT);
-  gps.disableNAV(Ublox::NAV_VELNED);
-  gps.disableNAV(Ublox::NAV_COV);
+  gps.enableNavMsg(Ublox::NAV_POSLLH);
+  gps.enableNavMsg(Ublox::NAV_STATUS);
+  gps.disableNavMsg(Ublox::NAV_PVT);
+  gps.disableNavMsg(Ublox::NAV_VELNED);
+  gps.disableNavMsg(Ublox::NAV_COV);
 
   if (!gps.testConnection())
   {
