@@ -22,12 +22,19 @@ struct NavPayload_STATUS
 
 struct NavPayload_PVT
 {
-  float lon;   // Longitude [deg]
-  float lat;   // Latitude [deg]
-  float hMSL;  // Height above mean sea level [m]
-  float velN;  // NED north veloity [m/s]
-  float velE;  // NED east veloity [m/s]
-  float velD;  // NED down veloity [m/s]
+  uint16_t year;  // Year (UTC)
+  uint8_t month;  // Month, range 1..12 (UTC)
+  uint8_t day;    // Day of month, range 1..31 (UTC)
+  uint8_t hour;   // Hour of day, range 0..23 (UTC)
+  uint8_t min;    // Minute of hour, range 0..59 (UTC)
+  uint8_t sec;    // Seconds of minute, range 0..60 (UTC)
+
+  float lon;      // Longitude [deg]
+  float lat;      // Latitude [deg]
+  float hMSL;     // Height above mean sea level [m]
+  float velN;     // NED north veloity [m/s]
+  float velE;     // NED east veloity [m/s]
+  float velD;     // NED down veloity [m/s]
 
   friend std::ostream& operator<<(std::ostream& os, const NavPayload_PVT& arg);
 };

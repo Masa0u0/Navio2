@@ -394,6 +394,13 @@ void Ublox::decode(NavPayload_PVT& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
+  data.year = (*(s + 11) << 8) | (*(s + 10));
+  data.month = *(s + 12);
+  data.day = *(s + 13);
+  data.hour = *(s + 14);
+  data.min= *(s + 15);
+  data.sec = *(s + 16);
+
   data.lon = ((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;
   data.lat = ((*(s + 37) << 24) | (*(s + 36) << 16) | (*(s + 35) << 8) | (*(s + 34))) * 1e-7;
   data.hMSL = ((*(s + 45) << 24) | (*(s + 44) << 16) | (*(s + 43) << 8) | (*(s + 42))) * 1e-3;

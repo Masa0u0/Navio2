@@ -19,6 +19,13 @@ ostream& operator<<(ostream& os, const NavPayload_STATUS& arg)
 
 ostream& operator<<(ostream& os, const NavPayload_PVT& arg)
 {
+  os << "Year (UTC): " << static_cast<int>(arg.year) << endl;
+  os << "Month, range 1..12 (UTC): " << static_cast<int>(arg.month) << endl;
+  os << "Day of month, range 1..31 (UTC): " << static_cast<int>(arg.day) << endl;
+  os << "Hour of day, range 0..23 (UTC): " << static_cast<int>(arg.hour) << endl;
+  os << "Minute of hour, range 0..59 (UTC): " << static_cast<int>(arg.min) << endl;
+  os << "Seconds of minute, range 0..60 (UTC): " << static_cast<int>(arg.sec) << endl;
+
   os << "Longitude: " << arg.lon << "[deg]" << endl;
   os << "Latitude: " << arg.lat << "[deg]" << endl;
   os << "Height above mean sea level: " << arg.hMSL << "[m]" << endl;
