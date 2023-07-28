@@ -145,6 +145,7 @@ private:
     uint8_t CK_B;
   };
 
+  /* ===== Payload structures ===== */
   struct PACKED CfgMsg
   {
     uint8_t msgClass;
@@ -158,6 +159,7 @@ private:
     uint16_t navRate;
     uint16_t timeRef;
   };
+  /* ==============================*/
 
   SPIdev spi_dev_;
   UBXScanner* scanner_;
