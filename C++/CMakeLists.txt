@@ -32,6 +32,7 @@ set(LIB_SRC_FILES
 	Navio/Common/Ublox.cpp
 	Navio/Common/Util.cpp
 	Navio/Common/gpio.cpp
+	Navio/Common/SPIdev.cpp
 	Navio/Navio+/ADC_Navio.cpp
 	Navio/Navio+/ADS1115.cpp
 	Navio/Navio+/Led_Navio.cpp

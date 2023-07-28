@@ -29,6 +29,8 @@ private:
     void calib_acc();
     void calib_mag();
 
+    SPIdev spi_dev_;
+
     float acc_divider;
     float gyro_divider;
 

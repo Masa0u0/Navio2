@@ -9,7 +9,7 @@
 
 static constexpr uint32_t kUbxBufferLength = 1024;
 static constexpr uint32_t kPreambleOffset = 2;
-static constexpr uint32_t kSpiSpeedHz = 5000000;  // Maximum frequency is 5.5MHz
+static constexpr uint32_t kSpiSpeedHz = 200000;  // Maximum frequency is 5.5MHz
 static constexpr uint32_t kConfigureMessageSize = 11;
 
 class UBXScanner
@@ -91,8 +91,8 @@ public:
     NAV_COV = (0x01 << 8) + 0x36,
   };
 
-  explicit Ublox(char* name = "/dev/spidev0.0");
-  explicit Ublox(char* name, UBXScanner* scan, UBXParser* pars);
+  explicit Ublox();
+  explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
   int enableNavMsg(message_t msg);
   int disableNavMsg(message_t msg);
@@ -148,7 +148,7 @@ private:
     uint8_t CK_B;
   };
 
-  char* spi_device_name_;
+  SPIdev spi_dev_;
   UBXScanner* scanner_;
   UBXParser* parser_;
 

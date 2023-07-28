@@ -19,15 +19,19 @@ public:
     void update();
 
 private:
-    unsigned int WriteReg(const char *dev, uint8_t WriteAddr, uint8_t WriteData);
-    unsigned int ReadReg(const char *dev, uint8_t ReadAddr);
-    void ReadRegs(const char *dev, uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes);
+    unsigned int WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData);
+    unsigned int ReadReg(SPIdev& spi_dev, uint8_t ReadAddr);
+    void ReadRegsImu(uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes);
+    void ReadRegsMag(uint8_t ReadAddr, uint8_t *ReadBuf, unsigned int Bytes);
 
     void set_gyro_scale(int scale);
     void set_acc_scale(int scale);
     void set_mag_scale(int scale);
 
     void rotate();
+
+    SPIdev spi_dev_imu_;
+    SPIdev spi_dev_mag_;
 
     float gyro_scale;
     float acc_scale;
