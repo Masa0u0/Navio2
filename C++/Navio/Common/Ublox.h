@@ -92,6 +92,8 @@ private:
 
     ID_CFG_MSG = 0x01,
     ID_CFG_RATE = 0x08,
+    ID_CFG_NAV5 = 0x24,
+    ID_CFG_GNSS = 0x3E,
     ID_NAV_POSLLH = 0x02,
     ID_NAV_STATUS = 0x03,
     ID_NAV_PVT = 0x07,
@@ -110,6 +112,22 @@ public:
     NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
   };
 
+  enum dynamics_model
+  {
+    PORTABLE = 0,
+    STATIONARY = 2,
+    PEDESTRIAN = 3,
+    AUTOMOTIVE = 4,
+    SEA = 5,
+    AIRBORNE_1G = 6,
+    AIRBORNE_2G = 7,
+    AIRBORNE_4G = 8,
+    WRIST_WORN_WATCH = 9,
+    MOTORBIKE = 10,
+    ROBOTIC_LAWN_MOWER = 11,
+    ELECTRIC_KICK_SCOOTER = 12,
+  };
+
   explicit Ublox();
   explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
@@ -119,7 +137,9 @@ public:
   void disableAllNavMsgs();
 
   /* 32.10.27.1 Navigation/measurement rate settings */
-  int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 0);
+  int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
+  /* 32.10.19.1 Navigation engine settings */
+  int configureDynamicsModel(dynamics_model dyn_model);
 
   uint16_t update();
 
@@ -158,6 +178,34 @@ private:
     uint16_t measRate;
     uint16_t navRate;
     uint16_t timeRef;
+  };
+
+  struct PACKED CfgNav5
+  {
+    uint16_t mask;
+    uint8_t dynModel;
+    uint8_t fixMode;
+    int32_t fixedAlt;
+    uint32_t fixedAltVar;
+    int8_t minElev;
+    uint8_t drLimit;
+    uint16_t pDop;
+    uint16_t tDop;
+    uint16_t pAcc;
+    uint16_t tAcc;
+    uint8_t staticHoldThresh;
+    uint8_t dgnssTimeout;
+    uint8_t cnoThreshNumSVs;
+    uint8_t cnoThresh;
+    uint8_t reserved1[2];
+    uint16_t staticHoldMaxDist;
+    uint8_t utcStandard;
+    uint8_t reserved2[5];
+  };
+
+  struct PACKED CfgGnss
+  {
+    // TODO
   };
   /* ==============================*/
 

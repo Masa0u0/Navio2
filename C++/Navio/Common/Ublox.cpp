@@ -247,6 +247,16 @@ int Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t
   return sendMessage(CLASS_CFG, ID_CFG_RATE, &cfg_rate, sizeof(CfgRate));
 }
 
+int Ublox::configureDynamicsModel(dynamics_model dyn_model)
+{
+  CfgNav5 cfg_nav5;
+  memset(&cfg_nav5, 0, sizeof(CfgNav5));
+  cfg_nav5.mask = 1;  // dynModelのみ更新
+  cfg_nav5.dynModel = dyn_model;
+
+  return sendMessage(CLASS_CFG, ID_CFG_NAV5, &cfg_nav5, sizeof(CfgNav5));
+}
+
 uint16_t Ublox::update()
 {
   int status = -1;
