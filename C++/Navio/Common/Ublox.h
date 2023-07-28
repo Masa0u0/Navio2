@@ -5,7 +5,7 @@
 #include "./SPIdev.h"
 #include "./nav_payloads.hpp"
 
-#define PACKED __attribute__((__packed__))
+#define PACKED __attribute__((__packed__))  // 構造体のメンバ変数がメモリ上で連続する
 
 static constexpr uint32_t kUbxBufferLength = 1024;
 static constexpr uint32_t kPreambleOffset = 2;
@@ -81,14 +81,33 @@ private:
  */
 class Ublox
 {
+private:
+  enum ubx_protocol_bytes
+  {
+    PREAMBLE1 = 0xb5,
+    PREAMBLE2 = 0x62,
+
+    CLASS_CFG = 0x06,
+    CLASS_NAV = 0x01,
+
+    ID_CFG_MSG = 0x01,
+    ID_CFG_RATE = 0x08,
+    ID_NAV_POSLLH = 0x02,
+    ID_NAV_STATUS = 0x03,
+    ID_NAV_PVT = 0x07,
+    ID_NAV_VELNED = 0x12,
+    ID_NAV_COV = 0x36,
+  };
+
 public:
+  // Class + ID
   enum message_t
   {
-    NAV_POSLLH = (0x01 << 8) + 0x02,
-    NAV_STATUS = (0x01 << 8) + 0x03,
-    NAV_PVT = (0x01 << 8) + 0x07,
-    NAV_VELNED = (0x01 << 8) + 0x12,
-    NAV_COV = (0x01 << 8) + 0x36,
+    NAV_POSLLH = (CLASS_NAV << 8) + ID_NAV_POSLLH,
+    NAV_STATUS = (CLASS_NAV << 8) + ID_NAV_STATUS,
+    NAV_PVT = (CLASS_NAV << 8) + ID_NAV_PVT,
+    NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
+    NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
   };
 
   explicit Ublox();
@@ -99,15 +118,8 @@ public:
   void enableAllNavMsgs();
   void disableAllNavMsgs();
 
-  /**
-   * @brief Test connection with the receiver. Function testConnection() waits for a ubx protocol
-   * message and checks it. If there's at least one correct message in the first 300 symbols the
-   * test is passed.
-   */
-  int testConnection();
-
   /* 32.10.27.1 Navigation/measurement rate settings */
-  int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t timeref = 0);
+  int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 0);
 
   uint16_t update();
 
@@ -118,21 +130,6 @@ public:
   void decode(NavPayload_COV& data) const;
 
 private:
-  enum ubx_protocol_bytes
-  {
-    PREAMBLE1 = 0xb5,
-    PREAMBLE2 = 0x62,
-    CLASS_CFG = 0x06,
-    MSG_CFG_RATE = 0x08,
-  };
-
-  struct PACKED CfgNavRate
-  {
-    uint16_t measure_rate;
-    uint16_t nav_rate;
-    uint16_t timeref;
-  };
-
   struct PACKED UbxHeader
   {
     uint8_t preamble1;
@@ -146,6 +143,20 @@ private:
   {
     uint8_t CK_A;
     uint8_t CK_B;
+  };
+
+  struct PACKED CfgMsg
+  {
+    uint8_t msgClass;
+    uint8_t msgID;
+    uint8_t rate;
+  };
+
+  struct PACKED CfgRate
+  {
+    uint16_t measRate;
+    uint16_t navRate;
+    uint16_t timeRef;
   };
 
   SPIdev spi_dev_;

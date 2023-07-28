@@ -200,70 +200,22 @@ Ublox::Ublox(UBXScanner* scan, UBXParser* pars)
 
 int Ublox::enableNavMsg(message_t msg)
 {
-  uint8_t tx[kConfigureMessageSize];  // UBX-CFG-MSG (p.216)
+  CfgMsg cfg_msg;
+  cfg_msg.msgClass = CLASS_NAV;
+  cfg_msg.msgID = msg - (CLASS_NAV << 8);
+  cfg_msg.rate = 1;
 
-  // Header
-  tx[0] = 0xb5;
-  tx[1] = 0x62;
-
-  // Class
-  tx[2] = 0x06;
-
-  // ID
-  tx[3] = 0x01;
-
-  // Length
-  tx[4] = 0x03;  // 1の位
-  tx[5] = 0x00;  // 16の位
-
-  // Payload
-  tx[6] = 0x01;               // msgClass
-  tx[7] = msg - (0x01 << 8);  // msgID
-  tx[8] = 0x01;               // rate
-
-  // Checksum
-  CheckSum ck = calculateCheckSum(tx, kConfigureMessageSize - 2);
-  tx[9] = ck.CK_A;
-  tx[10] = ck.CK_B;
-
-  const uint32_t length = (sizeof(tx) / sizeof(*tx));
-  uint8_t rx[length];
-
-  return spi_dev_.transfer(tx, rx, length);
+  return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
 }
 
 int Ublox::disableNavMsg(message_t msg)
 {
-  uint8_t tx[kConfigureMessageSize];  // UBX-CFG-MSG (p.216)
+  CfgMsg cfg_msg;
+  cfg_msg.msgClass = CLASS_NAV;
+  cfg_msg.msgID = msg - (CLASS_NAV << 8);
+  cfg_msg.rate = 0;  // rateを0にすると発行されなくなる
 
-  // Header
-  tx[0] = 0xb5;
-  tx[1] = 0x62;
-
-  // Class
-  tx[2] = 0x06;
-
-  // ID
-  tx[3] = 0x01;
-
-  // Length
-  tx[4] = 0x03;  // 1の位
-  tx[5] = 0x00;  // 16の位
-
-  // Payload
-  tx[6] = 0x01;               // msgClass
-  tx[7] = msg - (0x01 << 8);  // msgID
-  tx[8] = 0x00;               // rateを0Hzにすると発行されなくなる
-
-  // Checksum
-  CheckSum ck = calculateCheckSum(tx, kConfigureMessageSize - 2);
-  tx[9] = ck.CK_A;
-  tx[10] = ck.CK_B;
-
-  int length = (sizeof(tx) / sizeof(*tx));
-  uint8_t rx[length];
-
-  return spi_dev_.transfer(tx, rx, length);
+  return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
 }
 
 void Ublox::enableAllNavMsgs()
@@ -284,52 +236,14 @@ void Ublox::disableAllNavMsgs()
   disableNavMsg(NAV_COV);
 }
 
-int Ublox::testConnection()
+int Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t time_ref)
 {
-  int status;
-  int count = 0;
-  uint8_t to_gps_data = 0x00, from_gps_data = 0x00;
+  CfgRate cfg_rate;
+  cfg_rate.measRate = meas_rate;
+  cfg_rate.navRate = nav_rate;
+  cfg_rate.timeRef = time_ref;
 
-  // We do this, so that at least one ubx message is enabled
-  while (count < kUbxBufferLength / 2)
-  {
-    // From now on, we will send zeroes to the receiver, which it will ignore
-    // However, we are simultaneously getting useful information from it
-    spi_dev_.transfer(&to_gps_data, &from_gps_data, 1);
-
-    // Scanner checks the message structure with every byte received
-    status = scanner_->update(from_gps_data);
-
-    if (status == UBXScanner::Done)
-    {
-      // Once we have a full message we decode it and reset the scanner, making it look for another
-      // message in the data stream, coming over SPI
-
-      // If we find at least one valid message in the buffer, we consider connection to be
-      // established
-      if (parser_->checkMessage() == 1)
-      {
-        scanner_->reset();
-        return 1;
-      }
-
-      scanner_->reset();
-    }
-
-    count++;
-  }
-
-  return 0;
-}
-
-int Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t timeref)
-{
-  CfgNavRate msg;
-  msg.measure_rate = meas_rate;
-  msg.nav_rate = nav_rate;
-  msg.timeref = timeref;
-
-  return sendMessage(CLASS_CFG, MSG_CFG_RATE, &msg, sizeof(CfgNavRate));
+  return sendMessage(CLASS_CFG, ID_CFG_RATE, &cfg_rate, sizeof(CfgRate));
 }
 
 uint16_t Ublox::update()
@@ -398,7 +312,7 @@ void Ublox::decode(NavPayload_PVT& data) const
   data.month = *(s + 12);
   data.day = *(s + 13);
   data.hour = *(s + 14);
-  data.min= *(s + 15);
+  data.min = *(s + 15);
   data.sec = *(s + 16);
 
   data.lon = ((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;

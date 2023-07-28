@@ -4,7 +4,8 @@
 #include <Common/Ublox.h>
 #include <Common/Util.h>
 
-#define SLEEP_TIME 200  // [us]
+#define MEASUREMENT_RATE 100  // [ms]
+#define SLEEP_TIME 200        // [us]
 
 using namespace std;
 
@@ -32,13 +33,7 @@ int main(int argc, char* argv[])
   gps.disableNavMsg(Ublox::NAV_VELNED);
   gps.disableNavMsg(Ublox::NAV_COV);
 
-  if (!gps.testConnection())
-  {
-    cerr << "Failed to connect to GPS." << endl;
-    return 1;
-  }
-
-  if (gps.configureSolutionRate(100) < 0)
+  if (gps.configureSolutionRate(MEASUREMENT_RATE) < 0)
   {
     cerr << "Setting new rate: FAILED" << endl;
     return 1;
