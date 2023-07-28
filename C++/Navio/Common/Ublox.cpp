@@ -114,29 +114,30 @@ void UBXParser::updateMessageData()
 
 uint16_t UBXParser::calcId()
 {
-  const int pos = position_ - length_;  // count the message start position
+  const auto pos = position_ - length_;  // count the message start position
+  const auto s = message_ + pos;
 
   // All UBX messages start with 2 sync chars: 0xb5 and 0x62
-  if (*(message_ + pos) != 0xb5)
+  if (*s != 0xb5)
     return 0;
-  if (*(message_ + pos + 1) != 0x62)
+  if (*(s + 1) != 0x62)
     return 0;
 
   // Count the checksum
   uint8_t CK_A = 0, CK_B = 0;
   for (uint32_t i = 2; i < (length_ - 2); i++)
   {
-    CK_A += *(message_ + pos + i);
+    CK_A += *(s + i);
     CK_B += CK_A;
   }
-  if (CK_A != *(message_ + pos + length_ - 2))
+  if (CK_A != *(s + length_ - 2))
     return 0;
-  if (CK_B != *(message_ + pos + length_ - 1))
+  if (CK_B != *(s + length_ - 1))
     return 0;
 
   // If we got everything right, then it's time to decide, what type of message this is
   // ID is a two-byte number with little endianness
-  return latest_id_ = (*(message_ + pos + 2)) << 8 | (*(message_ + pos + 3));
+  return latest_id_ = (*(s + 2)) << 8 | (*(s + 3));
 }
 
 int UBXParser::checkMessage()
