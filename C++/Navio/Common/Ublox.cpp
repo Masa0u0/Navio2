@@ -19,12 +19,12 @@ uint8_t* UBXScanner::getMessage()
   return message_;
 }
 
-uint32_t UBXScanner::getMessageLength() const
+const uint32_t& UBXScanner::getMessageLength() const
 {
   return message_length_;
 }
 
-uint32_t UBXScanner::getPosition() const
+const uint32_t& UBXScanner::getPosition() const
 {
   return position_;
 }
@@ -107,15 +107,11 @@ UBXParser::UBXParser(UBXScanner* ubxsc) : scanner_(ubxsc), message_(ubxsc->getMe
 {
 }
 
-void UBXParser::updateMessageData()
-{
-  length_ = scanner_->getMessageLength();
-  position_ = scanner_->getPosition();
-}
-
 uint16_t UBXParser::calcId()
 {
-  const auto pos = position_ - length_;  // count the message start position
+  const auto& position = scanner_->getPosition();
+  const auto& length = scanner_->getMessageLength();
+  const auto pos = position - length;  // count the message start position
   const auto s = message_ + pos;
 
   // All UBX messages start with 2 sync chars: 0xb5 and 0x62
@@ -126,14 +122,14 @@ uint16_t UBXParser::calcId()
 
   // Count the checksum
   uint8_t CK_A = 0, CK_B = 0;
-  for (uint32_t i = 2; i < (length_ - 2); i++)
+  for (uint32_t i = 2; i + 2 < length; ++i)  // 符号なしの引き算はオーバーフローのリスクがある
   {
     CK_A += *(s + i);
     CK_B += CK_A;
   }
-  if (CK_A != *(s + length_ - 2))
+  if (CK_A != *(s + length - 2))
     return 0;
-  if (CK_B != *(s + length_ - 1))
+  if (CK_B != *(s + length - 1))
     return 0;
 
   // If we got everything right, then it's time to decide, what type of message this is
@@ -141,51 +137,22 @@ uint16_t UBXParser::calcId()
   return latest_id_ = (*(s + 2)) << 8 | (*(s + 3));
 }
 
-int UBXParser::checkMessage()
-{
-  updateMessageData();  // get the length and end message coordinate from UBX scanner
-
-  const auto pos = position_ - length_;  // count the message start position
-  const auto s = message_ + pos;
-
-  // All UBX messages start with 2 sync chars: 0xb5 and 0x62
-  if (*(s) != 0xb5)
-    return 0;
-  if (*(s + 1) != 0x62)
-    return 0;
-
-  // Count the checksum
-  uint8_t CK_A = 0, CK_B = 0;
-  for (uint32_t i = 2; i < (length_ - 2); i++)
-  {
-    CK_A += *(s + i);
-    CK_B += CK_A;
-  }
-
-  if (CK_A != *(s + length_ - 2))
-    return 0;
-  if (CK_B != *(s + length_ - 1))
-    return 0;
-
-  return 1;
-}
-
 uint8_t* UBXParser::getMessage() const
 {
   return message_;
 }
 
-uint32_t UBXParser::getLength() const
+const uint32_t& UBXParser::getLength() const
 {
-  return length_;
+  return scanner_->getMessageLength();
 }
 
-uint32_t UBXParser::getPosition() const
+const uint32_t& UBXParser::getPosition() const
 {
-  return position_;
+  return scanner_->getPosition();
 }
 
-uint16_t UBXParser::getLatestId() const
+const uint16_t& UBXParser::getLatestId() const
 {
   return latest_id_;
 }
@@ -383,7 +350,6 @@ uint16_t Ublox::update()
     status = scanner_->update(from_gps_data);
   }
 
-  parser_->updateMessageData();
   scanner_->reset();
   return parser_->calcId();
 }
@@ -529,7 +495,7 @@ Ublox::CheckSum Ublox::calculateCheckSum(uint8_t* message, size_t size) const
   CheckSum checksum;
   checksum.CK_A = checksum.CK_B = 0;
 
-  for (int i = kPreambleOffset; i < size; i++)
+  for (int i = kPreambleOffset; i < size; ++i)
   {
     checksum.CK_A += message[i];
     checksum.CK_B += checksum.CK_A;

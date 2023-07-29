@@ -34,8 +34,8 @@ public:
   explicit UBXScanner();
 
   uint8_t* getMessage();
-  uint32_t getMessageLength() const;
-  uint32_t getPosition() const;
+  const uint32_t& getMessageLength() const;
+  const uint32_t& getPosition() const;
 
   void reset();
   int update(uint8_t data);
@@ -53,26 +53,17 @@ class UBXParser
 public:
   explicit UBXParser(UBXScanner* ubxsc);
 
-  /* Updates message length and end position in the scanner's buffer. */
-  void updateMessageData();
   uint16_t calcId();
-  /**
-   * @brief Returns 1 if the message, currently stored in the buffer is valid. Validity means, that
-   * the necessary sync chars are present and the checksum test is passed.
-   */
-  int checkMessage();
 
   uint8_t* getMessage() const;
-  uint32_t getLength() const;
-  uint32_t getPosition() const;
-  uint16_t getLatestId() const;
+  const uint32_t& getLength() const;
+  const uint32_t& getPosition() const;
+  const uint16_t& getLatestId() const;
 
 private:
   UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
 
   uint8_t* message_;     // Pointer to the scanner's message buffer
-  uint32_t length_;      // Current message length
-  uint32_t position_;    // Current message end position
   uint16_t latest_id_;
 };
 
