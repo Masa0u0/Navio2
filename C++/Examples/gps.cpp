@@ -26,20 +26,26 @@ int main(int argc, char* argv[])
   NavPayload_VELNED velned;
   NavPayload_COV cov;
 
-  // Configure GPS messages
-  gps.enableNavMsg(Ublox::NAV_POSLLH);
-  gps.enableNavMsg(Ublox::NAV_STATUS);
-  gps.disableNavMsg(Ublox::NAV_PVT);
-  gps.disableNavMsg(Ublox::NAV_VELNED);
-  gps.disableNavMsg(Ublox::NAV_COV);
+  // Set message rate
+  gps.enableNavMsg(Ublox::NAV_POSLLH, false);
+  gps.enableNavMsg(Ublox::NAV_STATUS, true);
+  gps.enableNavMsg(Ublox::NAV_PVT, true);
+  gps.enableNavMsg(Ublox::NAV_VELNED, false);
+  gps.enableNavMsg(Ublox::NAV_COV, true);
 
+  // Navigation/measurement rate settings
   if (gps.configureSolutionRate(MEASUREMENT_RATE) < 0)
   {
     cerr << "Setting new rate: FAILED" << endl;
     return 1;
   }
 
-  uint32_t cnt = 0;
+  uint32_t cnt_posllh = 0;
+  uint32_t cnt_status = 0;
+  uint32_t cnt_pvt = 0;
+  uint32_t cnt_velned = 0;
+  uint32_t cnt_cov = 0;
+
   while (true)
   {
     const auto msg_id = gps.update();
@@ -48,23 +54,23 @@ int main(int argc, char* argv[])
     {
       case Ublox::NAV_POSLLH:
         gps.decode(posllh);
-        cout << "NAV_POSLLH:" << endl << posllh << endl;
+        cout << "NAV_POSLLH(" << ++cnt_posllh << "):" << endl << posllh << endl;
         break;
       case Ublox::NAV_STATUS:
         gps.decode(status);
-        cout << "NAV_STATUS:" << endl << status << endl;
+        cout << "NAV_STATUS(" << ++cnt_status << "):" << endl << status << endl;
         break;
       case Ublox::NAV_PVT:
         gps.decode(pvt);
-        cout << "NAV_PVT:" << endl << pvt << endl;
+        cout << "NAV_PVT(" << ++cnt_pvt << "):" << endl << pvt << endl;
         break;
       case Ublox::NAV_VELNED:
         gps.decode(velned);
-        cout << "NAV_VELNED:" << endl << velned << endl;
+        cout << "NAV_VELNED(" << ++cnt_velned << "):" << endl << velned << endl;
         break;
       case Ublox::NAV_COV:
         gps.decode(cov);
-        cout << "NAV_COV:" << endl << cov << endl;
+        cout << "NAV_COV(" << ++cnt_cov << "):" << endl << cov << endl;
         break;
       default:
         break;

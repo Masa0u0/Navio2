@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <cstring>
+#include <cassert>
 
 #include "Ublox.h"
 #include "Util.h"
@@ -199,47 +200,30 @@ Ublox::Ublox(UBXScanner* scan, UBXParser* pars)
 {
 }
 
-int Ublox::enableNavMsg(message_t msg)
+int Ublox::enableNavMsg(message_t msg, bool enable)
 {
   CfgMsg cfg_msg;
+
   cfg_msg.msgClass = CLASS_NAV;
   cfg_msg.msgID = msg - (CLASS_NAV << 8);
-  cfg_msg.rate = 1;
+  cfg_msg.rate = enable;
 
   return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
 }
 
-int Ublox::disableNavMsg(message_t msg)
+void Ublox::enableAllNavMsgs(bool enable)
 {
-  CfgMsg cfg_msg;
-  cfg_msg.msgClass = CLASS_NAV;
-  cfg_msg.msgID = msg - (CLASS_NAV << 8);
-  cfg_msg.rate = 0;  // rateを0にすると発行されなくなる
-
-  return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
-}
-
-void Ublox::enableAllNavMsgs()
-{
-  enableNavMsg(NAV_POSLLH);
-  enableNavMsg(NAV_STATUS);
-  enableNavMsg(NAV_PVT);
-  enableNavMsg(NAV_VELNED);
-  enableNavMsg(NAV_COV);
-}
-
-void Ublox::disableAllNavMsgs()
-{
-  disableNavMsg(NAV_POSLLH);
-  disableNavMsg(NAV_STATUS);
-  disableNavMsg(NAV_PVT);
-  disableNavMsg(NAV_VELNED);
-  disableNavMsg(NAV_COV);
+  enableNavMsg(NAV_POSLLH, enable);
+  enableNavMsg(NAV_STATUS, enable);
+  enableNavMsg(NAV_PVT, enable);
+  enableNavMsg(NAV_VELNED, enable);
+  enableNavMsg(NAV_COV, enable);
 }
 
 int Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t time_ref)
 {
   CfgRate cfg_rate;
+
   cfg_rate.measRate = meas_rate;
   cfg_rate.navRate = nav_rate;
   cfg_rate.timeRef = time_ref;
@@ -251,16 +235,143 @@ int Ublox::configureDynamicsModel(dynamics_model dyn_model)
 {
   CfgNav5 cfg_nav5;
   memset(&cfg_nav5, 0, sizeof(CfgNav5));
+
   cfg_nav5.mask = 1;  // dynModelのみ更新
   cfg_nav5.dynModel = dyn_model;
 
   return sendMessage(CLASS_CFG, ID_CFG_NAV5, &cfg_nav5, sizeof(CfgNav5));
 }
 
+int Ublox::configureGnss_GPS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+{
+  assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
+  assert(max_track_ch >= res_track_ch);
+
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = 0;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 | 0x20 : 0x00;
+  cfg_gnss.block.flags = enable ? 0x01 : 0x00;  // M8シリーズはL1A/Cのみ受信できる (1.5節)
+
+  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
+  usleep(kWaitForGnssAcknowledgement);
+  return state;
+}
+
+int Ublox::configureGnss_SBAS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+{
+  assert(max_track_ch >= res_track_ch);
+
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = 1;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
+
+  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
+  usleep(kWaitForGnssAcknowledgement);
+  return state;
+}
+
+int Ublox::configureGnss_Galileo(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+{
+  assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
+  assert(max_track_ch >= res_track_ch);
+
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = 2;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 | 0x20 : 0x00;
+  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
+
+  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
+  usleep(kWaitForGnssAcknowledgement);
+  return state;
+}
+
+int Ublox::configureGnss_BeiDou(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+{
+  assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
+  assert(max_track_ch >= res_track_ch);
+
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = 3;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 | 0x80 : 0x00;
+  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
+
+  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
+  usleep(kWaitForGnssAcknowledgement);
+  return state;
+}
+
+int Ublox::configureGnss_QZSS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+{
+  assert(max_track_ch >= res_track_ch);
+
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = 5;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  // cfg_gnss.block.flags = enable ? 0x01 | 0x04 | 0x10 | 0x20 : 0x00;
+  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
+
+  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
+  usleep(kWaitForGnssAcknowledgement);
+  return state;
+}
+
+int Ublox::configureGnss_GLONASS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+{
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = 6;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 : 0x00;
+  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
+
+  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
+  usleep(kWaitForGnssAcknowledgement);
+  return state;
+}
+
 uint16_t Ublox::update()
 {
   int status = -1;
-  uint8_t to_gps_data = 0x00, from_gps_data = 0x00;
+  uint8_t to_gps_data = 0, from_gps_data = 0;
 
   while (status != UBXScanner::Done)
   {

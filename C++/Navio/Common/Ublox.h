@@ -11,6 +11,8 @@ static constexpr uint32_t kUbxBufferLength = 1024;
 static constexpr uint32_t kPreambleOffset = 2;
 static constexpr uint32_t kSpiSpeedHz = 200000;  // Maximum frequency is 5.5MHz
 static constexpr uint32_t kConfigureMessageSize = 11;
+static constexpr uint32_t kMinMaxTrkChForMajorGnss = 4;
+static constexpr uint32_t kWaitForGnssAcknowledgement = 500000;  // [us]
 
 class UBXScanner
 {
@@ -131,15 +133,23 @@ public:
   explicit Ublox();
   explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
-  int enableNavMsg(message_t msg);
-  int disableNavMsg(message_t msg);
-  void enableAllNavMsgs();
-  void disableAllNavMsgs();
+  /* 32.10.18.3 Set message rate */
+  int enableNavMsg(message_t msg, bool enable);
+  void enableAllNavMsgs(bool enable);
 
   /* 32.10.27.1 Navigation/measurement rate settings */
   int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
+
   /* 32.10.19.1 Navigation engine settings */
   int configureDynamicsModel(dynamics_model dyn_model);
+
+  /* 32.10.13.1 GNSS system configuration */
+  int configureGnss_GPS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
+  int configureGnss_SBAS(bool enable, uint8_t res_track_ch = 1, uint8_t max_track_ch = 3);
+  int configureGnss_Galileo(bool enable, uint8_t res_track_ch = 4, uint8_t max_track_ch = 8);
+  int configureGnss_BeiDou(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
+  int configureGnss_QZSS(bool enable, uint8_t res_track_ch = 0, uint8_t max_track_ch = 3);
+  int configureGnss_GLONASS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 14);
 
   uint16_t update();
 
@@ -203,9 +213,22 @@ private:
     uint8_t reserved2[5];
   };
 
+  struct PACKED CfgGnssBlock
+  {
+    uint8_t gnssId;
+    uint8_t resTrkCh;
+    uint8_t maxTrkCh;
+    uint8_t reserved1;
+    uint32_t flags;
+  };
+
   struct PACKED CfgGnss
   {
-    // TODO
+    uint8_t msgVer;
+    uint8_t numTrkChHw;
+    uint8_t numTrkChUse;
+    uint8_t numConfigBlocks = 1;  // Always 1
+    CfgGnssBlock block;
   };
   /* ==============================*/
 
