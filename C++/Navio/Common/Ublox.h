@@ -125,22 +125,22 @@ public:
   explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
   /* 32.10.18.3 Set message rate */
-  int enableNavMsg(message_t msg, bool enable);
-  void enableAllNavMsgs(bool enable);
+  bool enableNavMsg(message_t msg, bool enable);
+  bool enableAllNavMsgs(bool enable);
 
   /* 32.10.27.1 Navigation/measurement rate settings */
-  int configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
+  bool configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
 
   /* 32.10.19.1 Navigation engine settings */
-  int configureDynamicsModel(dynamics_model dyn_model);
+  bool configureDynamicsModel(dynamics_model dyn_model);
 
   /* 32.10.13.1 GNSS system configuration */
-  int configureGnss_GPS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
-  int configureGnss_SBAS(bool enable, uint8_t res_track_ch = 1, uint8_t max_track_ch = 3);
-  int configureGnss_Galileo(bool enable, uint8_t res_track_ch = 4, uint8_t max_track_ch = 8);
-  int configureGnss_BeiDou(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
-  int configureGnss_QZSS(bool enable, uint8_t res_track_ch = 0, uint8_t max_track_ch = 3);
-  int configureGnss_GLONASS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 14);
+  bool configureGnss_GPS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
+  bool configureGnss_SBAS(bool enable, uint8_t res_track_ch = 1, uint8_t max_track_ch = 3);
+  bool configureGnss_Galileo(bool enable, uint8_t res_track_ch = 4, uint8_t max_track_ch = 8);
+  bool configureGnss_BeiDou(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
+  bool configureGnss_QZSS(bool enable, uint8_t res_track_ch = 0, uint8_t max_track_ch = 3);
+  bool configureGnss_GLONASS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 14);
 
   uint16_t update();
 
@@ -227,7 +227,7 @@ private:
   UBXScanner* scanner_;
   UBXParser* parser_;
 
-  int sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size);
+  bool sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size);
   int spliceMemory(uint8_t* dest, const void* const src, size_t size, int dest_offset = 0);
 
   /* p.171, 32.4 UBX Checksum. */

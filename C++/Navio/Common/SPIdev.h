@@ -17,7 +17,7 @@ public:
     u_short delay_usecs = 0);
   ~SPIdev();
 
-  int transfer(u_char* tx, u_char* rx, uint32_t length);
+  bool transfer(u_char* tx, u_char* rx, uint32_t length);
 
 private:
   spi_ioc_transfer spi_transfer_;

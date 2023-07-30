@@ -167,7 +167,7 @@ Ublox::Ublox(UBXScanner* scan, UBXParser* pars)
 {
 }
 
-int Ublox::enableNavMsg(message_t msg, bool enable)
+bool Ublox::enableNavMsg(message_t msg, bool enable)
 {
   CfgMsg cfg_msg;
 
@@ -178,16 +178,20 @@ int Ublox::enableNavMsg(message_t msg, bool enable)
   return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
 }
 
-void Ublox::enableAllNavMsgs(bool enable)
+bool Ublox::enableAllNavMsgs(bool enable)
 {
-  enableNavMsg(NAV_POSLLH, enable);
-  enableNavMsg(NAV_STATUS, enable);
-  enableNavMsg(NAV_PVT, enable);
-  enableNavMsg(NAV_VELNED, enable);
-  enableNavMsg(NAV_COV, enable);
+  bool ok = true;
+
+  ok &= enableNavMsg(NAV_POSLLH, enable);
+  ok &= enableNavMsg(NAV_STATUS, enable);
+  ok &= enableNavMsg(NAV_PVT, enable);
+  ok &= enableNavMsg(NAV_VELNED, enable);
+  ok &= enableNavMsg(NAV_COV, enable);
+
+  return ok;
 }
 
-int Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t time_ref)
+bool Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t time_ref)
 {
   CfgRate cfg_rate;
 
@@ -198,7 +202,7 @@ int Ublox::configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate, uint16_t
   return sendMessage(CLASS_CFG, ID_CFG_RATE, &cfg_rate, sizeof(CfgRate));
 }
 
-int Ublox::configureDynamicsModel(dynamics_model dyn_model)
+bool Ublox::configureDynamicsModel(dynamics_model dyn_model)
 {
   CfgNav5 cfg_nav5;
   memset(&cfg_nav5, 0, sizeof(CfgNav5));
@@ -209,7 +213,7 @@ int Ublox::configureDynamicsModel(dynamics_model dyn_model)
   return sendMessage(CLASS_CFG, ID_CFG_NAV5, &cfg_nav5, sizeof(CfgNav5));
 }
 
-int Ublox::configureGnss_GPS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+bool Ublox::configureGnss_GPS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
   assert(max_track_ch >= res_track_ch);
@@ -231,7 +235,7 @@ int Ublox::configureGnss_GPS(bool enable, uint8_t res_track_ch, uint8_t max_trac
   return state;
 }
 
-int Ublox::configureGnss_SBAS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+bool Ublox::configureGnss_SBAS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= res_track_ch);
 
@@ -251,7 +255,7 @@ int Ublox::configureGnss_SBAS(bool enable, uint8_t res_track_ch, uint8_t max_tra
   return state;
 }
 
-int Ublox::configureGnss_Galileo(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+bool Ublox::configureGnss_Galileo(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
   assert(max_track_ch >= res_track_ch);
@@ -273,7 +277,7 @@ int Ublox::configureGnss_Galileo(bool enable, uint8_t res_track_ch, uint8_t max_
   return state;
 }
 
-int Ublox::configureGnss_BeiDou(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+bool Ublox::configureGnss_BeiDou(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
   assert(max_track_ch >= res_track_ch);
@@ -295,7 +299,7 @@ int Ublox::configureGnss_BeiDou(bool enable, uint8_t res_track_ch, uint8_t max_t
   return state;
 }
 
-int Ublox::configureGnss_QZSS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+bool Ublox::configureGnss_QZSS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= res_track_ch);
 
@@ -316,7 +320,7 @@ int Ublox::configureGnss_QZSS(bool enable, uint8_t res_track_ch, uint8_t max_tra
   return state;
 }
 
-int Ublox::configureGnss_GLONASS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
+bool Ublox::configureGnss_GLONASS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   CfgGnss cfg_gnss;
   memset(&cfg_gnss, 0, sizeof(CfgGnss));
@@ -464,7 +468,7 @@ void Ublox::decode(NavPayload_COV& data) const
     decodeBinary32((*(s + 69) << 24) | (*(s + 68) << 16) | (*(s + 67) << 8) | (*(s + 66)));
 }
 
-int Ublox::sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size)
+bool Ublox::sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size)
 {
   uint8_t buffer[kUbxBufferLength];
 

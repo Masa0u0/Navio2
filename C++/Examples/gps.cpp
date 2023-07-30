@@ -34,9 +34,9 @@ int main(int argc, char* argv[])
   gps.enableNavMsg(Ublox::NAV_COV, true);
 
   // Navigation/measurement rate settings
-  if (gps.configureSolutionRate(MEASUREMENT_RATE) < 0)
+  if (!gps.configureSolutionRate(MEASUREMENT_RATE))
   {
-    cerr << "Setting new rate: FAILED" << endl;
+    cerr << "Failed to configure solution rate." << endl;
     return 1;
   }
 

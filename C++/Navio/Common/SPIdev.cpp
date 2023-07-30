@@ -25,10 +25,10 @@ SPIdev::~SPIdev()
   close(spi_fd_);
 }
 
-int SPIdev::transfer(u_char* tx, u_char* rx, uint32_t length)
+bool SPIdev::transfer(u_char* tx, u_char* rx, uint32_t length)
 {
   spi_transfer_.tx_buf = (u_long)tx;
   spi_transfer_.rx_buf = (u_long)rx;
   spi_transfer_.len = length;
-  return ioctl(spi_fd_, SPI_IOC_MESSAGE(1), &spi_transfer_);
+  return ioctl(spi_fd_, SPI_IOC_MESSAGE(1), &spi_transfer_) >= 0;
 }
