@@ -14,7 +14,7 @@ void ADC_Navio::initialize()
 
 int ADC_Navio::read(int ch)
 {
-  if (ch > ARRAY_SIZE(muxes))
+  if (static_cast<size_t>(ch) > ARRAY_SIZE(muxes))
   {
     fprintf(stderr, "Channel number too large\n");
     return -1;

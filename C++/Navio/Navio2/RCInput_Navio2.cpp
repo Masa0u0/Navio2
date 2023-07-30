@@ -27,7 +27,7 @@ void RCInput_Navio2::initialize()
 
 int RCInput_Navio2::read(int ch)
 {
-  if (ch > ARRAY_SIZE(channels))
+  if (static_cast<size_t>(ch) > ARRAY_SIZE(channels))
   {
     fprintf(stderr, "Channel number too large\n");
     return -1;

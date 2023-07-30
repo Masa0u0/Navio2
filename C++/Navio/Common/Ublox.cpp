@@ -499,7 +499,7 @@ Ublox::CheckSum Ublox::calculateCheckSum(uint8_t* message, size_t size) const
   CheckSum checksum;
   checksum.CK_A = checksum.CK_B = 0;
 
-  for (int i = kPreambleOffset; i < size; ++i)
+  for (size_t i = kPreambleOffset; i < size; ++i)
   {
     checksum.CK_A += message[i];
     checksum.CK_B += checksum.CK_A;

@@ -51,7 +51,7 @@ void RCInput_Navio::initialize()
 
 int RCInput_Navio::read(int ch)
 {
-  if (ch > ppmChannelsNumber)
+  if (static_cast<uint32_t>(ch) > ppmChannelsNumber)
   {
     fprintf(stderr, "Channel number too large\n");
     return -1;

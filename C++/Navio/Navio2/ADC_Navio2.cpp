@@ -32,7 +32,7 @@ int ADC_Navio2::get_channel_count(void)
 
 int ADC_Navio2::read(int ch)
 {
-  if (ch > ARRAY_SIZE(channels))
+  if (static_cast<size_t>(ch) > ARRAY_SIZE(channels))
   {
     fprintf(stderr, "Channel number too large\n");
     return -1;
