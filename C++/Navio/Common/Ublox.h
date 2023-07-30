@@ -218,7 +218,7 @@ private:
     uint8_t msgVer;
     uint8_t numTrkChHw;
     uint8_t numTrkChUse;
-    uint8_t numConfigBlocks = 1;  // Always 1
+    uint8_t numConfigBlocks;  // Always 1
     CfgGnssBlock block;
   };
   /* ==============================*/
