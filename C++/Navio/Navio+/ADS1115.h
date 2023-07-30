@@ -89,35 +89,131 @@
 class ADS1115
 {
 public:
+  /**
+   * @brief ADS1115 constructor
+   * Default gain is 4096
+   * Default multiplexer is between GND and P0
+   * Default comparator mode is disabled
+   * Default mode is singleshot
+   * @param address
+   */
   ADS1115(uint8_t address = ADS1115_DEFAULT_ADDRESS);
-  ~ADS1115();
 
+  /** Verify the I2C connection.
+   * @return True if connection is valid, false otherwise
+   */
   bool testConnection();
 
+  /**
+   * @brief Get data from Conversion Register
+   *
+   * @return Little-Endian result
+   */
   int16_t getConversion();
 
+  /**
+   * @brief Update Operational Status
+   *
+   * @param Desired Status
+   */
   void setOpStatus(uint16_t op);
 
+  /**
+   * @brief Check which Multiplexer is selected
+   *
+   * @return Multiplexer status
+   */
   uint16_t getMultiplexer();
+
+  /**
+   * @brief Choose the multiplexer
+   *
+   * @param Desired multiplexer
+   */
   void setMultiplexer(uint16_t mux);
 
+  /**
+   * @brief Get current gain
+   *
+   * @return Current Gain
+   */
   uint16_t getGain();
+
+  /**
+   * @brief Set gain
+   *
+   * @param gain
+   */
   void setGain(uint16_t gain);
 
+  /**
+   * @brief Get mode
+   *
+   * @return mode
+   */
   uint16_t getMode();
+
+  /**
+   * @brief Set mode
+   *
+   * @param mode
+   */
   void setMode(uint16_t mode);
 
+  /**
+   * @brief Get rate
+   *
+   * @return rate
+   */
   uint16_t getRate();
+
+  /**
+   * @brief Set rate
+   *
+   * @param rate
+   */
   void setRate(uint16_t rate);
 
+  /**
+   * @brief Get content of conversion register in mV. It gets converted using current gain
+   * @see setGain
+   *
+   * @return Last conversion in mV
+   */
   float getMilliVolts();
 
+  /**
+   * @brief set comparator mode
+   *
+   * @param comparator
+   */
   void setComparatorMode(uint16_t comparatorMode);
+
+  /**
+   * @brief Set Comparator polarity
+   *
+   * @param polarity
+   */
   void setComparatorPolarity(uint16_t polarit);
+
+  /**
+   * @brief Set comparator latch status
+   *
+   * @param latch
+   */
   void setComparatorLatchEnabled(uint16_t latchStatus);
+
+  /**
+   * @brief Set Comparator Queue Mode
+   *
+   * @param queue
+   */
   void setComparatorQueueMode(uint16_t queueMode);
 
 private:
+  /**
+   * @brief Call it if you updated ConfigRegister
+   */
   void updateConfigRegister();
 
   uint8_t address;
@@ -134,6 +230,4 @@ private:
     uint16_t latch;
     uint16_t queue;
   } config;
-
-  void showConfigRegister();
 };

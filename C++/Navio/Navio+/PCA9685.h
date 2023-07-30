@@ -42,25 +42,99 @@
 class PCA9685
 {
 public:
+  /** PCA9685 constructor.
+   * @param address I2C address
+   * @see PCA9685_DEFAULT_ADDRESS
+   */
   PCA9685(uint8_t address = PCA9685_DEFAULT_ADDRESS);
 
+  /** Power on and prepare for general usage.
+   * This method reads prescale value stored in PCA9685 and calculate frequency based on it.
+   * Then it enables auto-increment of register address to allow for faster writes.
+   * And finally the restart is performed to enable clocking.
+   */
   void initialize();
+
+  /** Verify the I2C connection.
+   * @return True if connection is valid, false otherwise
+   */
   bool testConnection();
 
-  float getFrequency();
-  void setFrequency(float frequency);
-
+  /** Put PCA9685 to sleep mode thus turning off the outputs.
+   * @see PCA9685_MODE1_SLEEP_BIT
+   */
   void sleep();
+
+  /** Disable sleep mode and start the outputs.
+   * @see PCA9685_MODE1_SLEEP_BIT
+   * @see PCA9685_MODE1_RESTART_BIT
+   */
   void restart();
 
+  /** Calculate prescale value based on the specified frequency and write it to the device.
+   * @return Frequency in Hz
+   * @see PCA9685_RA_PRE_SCALE
+   */
+  float getFrequency();
+
+  /** Calculate prescale value based on the specified frequency and write it to the device.
+   * @param Frequency in Hz
+   * @see PCA9685_RA_PRE_SCALE
+   */
+  void setFrequency(float frequency);
+
+  /** Set channel start offset of the pulse and it's length
+   * @param Channel number (0-15)
+   * @param Offset (0-4095)
+   * @param Length (0-4095)
+   * @see PCA9685_RA_LED0_ON_L
+   */
   void setPWM(uint8_t channel, uint16_t offset, uint16_t length);
+
+  /** Set channel's pulse length
+   * @param Channel number (0-15)
+   * @param Length (0-4095)
+   * @see PCA9685_RA_LED0_ON_L
+   */
   void setPWM(uint8_t channel, uint16_t length);
+
+  /** Set channel's pulse length in milliseconds
+   * @param Channel number (0-15)
+   * @param Length in milliseconds
+   * @see PCA9685_RA_LED0_ON_L
+   */
   void setPWMmS(uint8_t channel, float length_mS);
+
+  /** Set channel's pulse length in microseconds
+   * @param Channel number (0-15)
+   * @param Length in microseconds
+   * @see PCA9685_RA_LED0_ON_L
+   */
   void setPWMuS(uint8_t channel, float length_uS);
 
+  /** Set start offset of the pulse and it's length for all channels
+   * @param Offset (0-4095)
+   * @param Length (0-4095)
+   * @see PCA9685_RA_ALL_LED_ON_L
+   */
   void setAllPWM(uint16_t offset, uint16_t length);
+
+  /** Set pulse length for all channels
+   * @param Length (0-4095)
+   * @see PCA9685_RA_ALL_LED_ON_L
+   */
   void setAllPWM(uint16_t length);
+
+  /** Set pulse length in milliseconds for all channels
+   * @param Length in milliseconds
+   * @see PCA9685_RA_ALL_LED_ON_L
+   */
   void setAllPWMmS(float length_mS);
+
+  /** Set pulse length in microseconds for all channels
+   * @param Length in microseconds
+   * @see PCA9685_RA_ALL_LED_ON_L
+   */
   void setAllPWMuS(float length_uS);
 
 private:

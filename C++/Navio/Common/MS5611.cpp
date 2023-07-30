@@ -1,17 +1,10 @@
 #include "MS5611.h"
 
-/** MS5611 constructor.
- * @param address I2C address
- * @see MS5611_DEFAULT_ADDRESS
- */
 MS5611::MS5611(uint8_t address)
 {
   this->devAddr = address;
 }
 
-/** Power on and prepare for general usage.
- * This method reads coefficients stored in PROM.
- */
 void MS5611::initialize()
 {
   // Reading 6 calibration data values
@@ -32,9 +25,6 @@ void MS5611::initialize()
   update();
 }
 
-/** Verify the I2C connection.
- * @return True if connection is valid, false otherwise
- */
 bool MS5611::testConnection()
 {
   uint8_t data;
@@ -45,17 +35,11 @@ bool MS5611::testConnection()
     return false;
 }
 
-/** Initiate the process of pressure measurement
- * @param OSR value
- * @see MS5611_RA_D1_OSR_4096
- */
 void MS5611::refreshPressure(uint8_t OSR)
 {
   I2Cdev::writeBytes(devAddr, OSR, 0, 0);
 }
 
-/** Read pressure value
- */
 void MS5611::readPressure()
 {
   //
@@ -64,17 +48,11 @@ void MS5611::readPressure()
   D1 = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
 }
 
-/** Initiate the process of temperature measurement
- * @param OSR value
- * @see MS5611_RA_D2_OSR_4096
- */
 void MS5611::refreshTemperature(uint8_t OSR)
 {
   I2Cdev::writeBytes(devAddr, OSR, 0, 0);
 }
 
-/** Read temperature value
- */
 void MS5611::readTemperature()
 {
   uint8_t buffer[3];
@@ -82,9 +60,6 @@ void MS5611::readTemperature()
   D2 = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
 }
 
-/** Calculate temperature and pressure calculations and perform compensation
- *  More info about these calculations is available in the datasheet.
- */
 void MS5611::calculatePressureAndTemperature()
 {
   float dT = D2 - C5 * pow(2, 8);
@@ -121,9 +96,6 @@ void MS5611::calculatePressureAndTemperature()
   TEMP = TEMP / 100;
 }
 
-/** Perform pressure and temperature reading and calculation at once.
- *  Contains sleeps, better perform operations separately.
- */
 void MS5611::update()
 {
   refreshPressure();
@@ -137,17 +109,11 @@ void MS5611::update()
   calculatePressureAndTemperature();
 }
 
-/** Get calculated temperature value
- @return Temperature in degrees of Celsius
- */
 float MS5611::getTemperature()
 {
   return TEMP;
 }
 
-/** Get calculated pressure value
- @return Pressure in millibars
- */
 float MS5611::getPressure()
 {
   return PRES;

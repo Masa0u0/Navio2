@@ -1,7 +1,7 @@
 #pragma once
 
-#include "SPIdev.h"
-#include "InertialSensor.h"
+#include "./SPIdev.h"
+#include "./InertialSensor.h"
 
 class MPU9250 : public InertialSensor
 {

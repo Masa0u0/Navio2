@@ -37,21 +37,60 @@
 class MS5611
 {
 public:
+  /** MS5611 constructor.
+   * @param address I2C address
+   * @see MS5611_DEFAULT_ADDRESS
+   */
   MS5611(uint8_t address = MS5611_DEFAULT_ADDRESS);
 
+  /** Power on and prepare for general usage.
+   * This method reads coefficients stored in PROM.
+   */
   void initialize();
+
+  /** Verify the I2C connection.
+   * @return True if connection is valid, false otherwise
+   */
   bool testConnection();
 
+  /** Initiate the process of pressure measurement
+   * @param OSR value
+   * @see MS5611_RA_D1_OSR_4096
+   */
   void refreshPressure(uint8_t OSR = MS5611_RA_D1_OSR_4096);
+
+  /** Read pressure value
+   */
   void readPressure();
 
+  /** Initiate the process of temperature measurement
+   * @param OSR value
+   * @see MS5611_RA_D2_OSR_4096
+   */
   void refreshTemperature(uint8_t OSR = MS5611_RA_D2_OSR_4096);
+
+  /** Read temperature value
+   */
   void readTemperature();
 
+  /** Calculate temperature and pressure calculations and perform compensation
+   *  More info about these calculations is available in the datasheet.
+   */
   void calculatePressureAndTemperature();
+
+  /** Perform pressure and temperature reading and calculation at once.
+   *  Contains sleeps, better perform operations separately.
+   */
   void update();
 
+  /** Get calculated temperature value
+   @return Temperature in degrees of Celsius
+   */
   float getTemperature();
+
+  /** Get calculated pressure value
+ @return Pressure in millibars
+ */
   float getPressure();
 
 private:
