@@ -13,12 +13,12 @@ public:
   void update();
 
 private:
-  unsigned int WriteReg(uint8_t WriteAddr, uint8_t WriteData);
-  unsigned int ReadReg(uint8_t ReadAddr);
-  void ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes);
+  uint32_t WriteReg(uint8_t WriteAddr, uint8_t WriteData);
+  uint32_t ReadReg(uint8_t ReadAddr);
+  void ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes);
 
-  unsigned int set_gyro_scale(int scale);
-  unsigned int set_acc_scale(int scale);
+  uint32_t set_gyro_scale(int scale);
+  uint32_t set_acc_scale(int scale);
 
   void calib_acc();
   void calib_mag();

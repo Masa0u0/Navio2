@@ -425,7 +425,7 @@ void imuLoop(AHRS* ahrs, Socket sock)
   static float mindt = 0.01;
   static float dtsumm = 0;
   static int isFirst = 1;
-  static unsigned long previoustime, currenttime;
+  static uint64_t previoustime, currenttime;
 
   //----------------------- Calculate delta time ----------------------------
 

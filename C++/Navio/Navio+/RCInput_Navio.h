@@ -18,12 +18,12 @@ private:
 
   //================================ Options =====================================
 
-  unsigned int samplingRate = 1;       // 1 microsecond (can be 1,2,4,5,10)
-  unsigned int ppmInputGpio = 4;       // PPM input on Navio's 2.54 header
-  unsigned int ppmSyncLength = 4000;   // Length of PPM sync pause
-  unsigned int ppmChannelsNumber = 8;  // Number of channels packed in PPM
-  unsigned int servoFrequency = 50;    // Servo control frequency
-  bool verboseOutputEnabled = true;    // Output channels values to console
+  uint32_t samplingRate = 1;         // 1 microsecond (can be 1,2,4,5,10)
+  uint32_t ppmInputGpio = 4;         // PPM input on Navio's 2.54 header
+  uint32_t ppmSyncLength = 4000;     // Length of PPM sync pause
+  uint32_t ppmChannelsNumber = 8;    // Number of channels packed in PPM
+  uint32_t servoFrequency = 50;      // Servo control frequency
+  bool verboseOutputEnabled = true;  // Output channels values to console
 
   //================================== Data ======================================
 
@@ -31,7 +31,7 @@ private:
 
   //============================== PPM decoder ===================================
 
-  unsigned int currentChannel = 0;
-  unsigned int previousTick;
-  unsigned int deltaTime;
+  uint32_t currentChannel = 0;
+  uint32_t previousTick;
+  uint32_t deltaTime;
 };

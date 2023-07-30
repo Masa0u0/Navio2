@@ -13,10 +13,10 @@ public:
   void update();
 
 private:
-  unsigned int WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData);
-  unsigned int ReadReg(SPIdev& spi_dev, uint8_t ReadAddr);
-  void ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes);
-  void ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes);
+  uint32_t WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData);
+  uint32_t ReadReg(SPIdev& spi_dev, uint8_t ReadAddr);
+  void ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes);
+  void ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes);
 
   void set_gyro_scale(int scale);
   void set_acc_scale(int scale);

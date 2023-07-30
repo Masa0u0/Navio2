@@ -14,10 +14,10 @@ MPU9250::MPU9250() : spi_dev_("/dev/spidev0.1")
 usage: use these methods to read and write MPU9250 registers over SPI
 -----------------------------------------------------------------------------------------------*/
 
-unsigned int MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
+uint32_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
 {
-  unsigned char tx[2] = { WriteAddr, WriteData };
-  unsigned char rx[2] = { 0 };
+  uint8_t tx[2] = { WriteAddr, WriteData };
+  uint8_t rx[2] = { 0 };
 
   spi_dev_.transfer(tx, rx, 2);
 
@@ -26,19 +26,19 @@ unsigned int MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
 
 //-----------------------------------------------------------------------------------------------
 
-unsigned int MPU9250::ReadReg(uint8_t ReadAddr)
+uint32_t MPU9250::ReadReg(uint8_t ReadAddr)
 {
   return WriteReg(ReadAddr | READ_FLAG, 0x00);
 }
 
 //-----------------------------------------------------------------------------------------------
 
-void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes)
+void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  unsigned int i = 0;
+  uint32_t i = 0;
 
-  unsigned char tx[255] = { 0 };
-  unsigned char rx[255] = { 0 };
+  uint8_t tx[255] = { 0 };
+  uint8_t rx[255] = { 0 };
 
   tx[0] = ReadAddr | READ_FLAG;
 
@@ -153,9 +153,9 @@ BITS_FS_16G
 returns the range set (2,4,8 or 16)
 -----------------------------------------------------------------------------------------------*/
 
-unsigned int MPU9250::set_acc_scale(int scale)
+uint32_t MPU9250::set_acc_scale(int scale)
 {
-  unsigned int temp_scale;
+  uint32_t temp_scale;
   WriteReg(MPUREG_ACCEL_CONFIG, scale);
 
   switch (scale)
@@ -204,9 +204,9 @@ BITS_FS_2000DPS
 returns the range set (250,500,1000 or 2000)
 -----------------------------------------------------------------------------------------------*/
 
-unsigned int MPU9250::set_gyro_scale(int scale)
+uint32_t MPU9250::set_gyro_scale(int scale)
 {
-  unsigned int temp_scale;
+  uint32_t temp_scale;
   WriteReg(MPUREG_GYRO_CONFIG, scale);
   switch (scale)
   {

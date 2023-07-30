@@ -18,23 +18,23 @@ LSM9DS1::LSM9DS1() : spi_dev_imu_(DEVICE_ACC_GYRO), spi_dev_mag_(DEVICE_MAGNETOM
 usage: use these methods to read and write LSM9DS1 registers over SPI
 -----------------------------------------------------------------------------------------------*/
 
-unsigned int LSM9DS1::WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData)
+uint32_t LSM9DS1::WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData)
 {
-  unsigned char tx[2] = { WriteAddr, WriteData };
-  unsigned char rx[2] = { 0 };
+  uint8_t tx[2] = { WriteAddr, WriteData };
+  uint8_t rx[2] = { 0 };
   spi_dev.transfer(tx, rx, 2);
   return rx[1];
 }
 
-unsigned int LSM9DS1::ReadReg(SPIdev& spi_dev, uint8_t ReadAddr)
+uint32_t LSM9DS1::ReadReg(SPIdev& spi_dev, uint8_t ReadAddr)
 {
   return WriteReg(spi_dev, ReadAddr | READ_FLAG, 0x00);
 }
 
-void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes)
+void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  unsigned char tx[255] = { 0 };
-  unsigned char rx[255] = { 0 };
+  uint8_t tx[255] = { 0 };
+  uint8_t rx[255] = { 0 };
 
   tx[0] = ReadAddr | READ_FLAG;
 
@@ -46,10 +46,10 @@ void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes
   usleep(50);
 }
 
-void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, unsigned int Bytes)
+void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  unsigned char tx[255] = { 0 };
-  unsigned char rx[255] = { 0 };
+  uint8_t tx[255] = { 0 };
+  uint8_t rx[255] = { 0 };
 
   tx[0] = ReadAddr | READ_FLAG | MULTIPLE_READ;
 

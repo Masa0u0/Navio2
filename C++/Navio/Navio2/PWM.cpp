@@ -10,7 +10,7 @@ PWM::PWM()
 {
 }
 
-bool PWM::init(unsigned int channel)
+bool PWM::init(uint32_t channel)
 {
   const int err = write_file("/sys/class/pwm/pwmchip0/export", "%u", channel);
   if (err >= 0 || err == -EBUSY)
@@ -25,7 +25,7 @@ bool PWM::init(unsigned int channel)
   return true;
 }
 
-bool PWM::enable(unsigned int channel)
+bool PWM::enable(uint32_t channel)
 {
   char path[60] = "/sys/class/pwm/pwmchip0";
   char path_ch[20];
@@ -40,7 +40,7 @@ bool PWM::enable(unsigned int channel)
   return true;
 }
 
-bool PWM::set_period(unsigned int channel, unsigned int freq)
+bool PWM::set_period(uint32_t channel, uint32_t freq)
 {
   char path[60] = "/sys/class/pwm/pwmchip0";
   char path_ch[20];
@@ -56,7 +56,7 @@ bool PWM::set_period(unsigned int channel, unsigned int freq)
   return true;
 }
 
-bool PWM::set_duty_cycle(unsigned int channel, float period)
+bool PWM::set_duty_cycle(uint32_t channel, float period)
 {
   char path[60] = "/sys/class/pwm/pwmchip0";
   char path_ch[20];
