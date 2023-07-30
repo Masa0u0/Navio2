@@ -21,7 +21,7 @@ std::unique_ptr<ADC> get_converter()
   }
 }
 
-int main(int argc, char* argv[])
+int main()
 {
   if (check_apm())
   {

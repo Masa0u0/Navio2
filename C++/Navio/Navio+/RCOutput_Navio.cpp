@@ -4,7 +4,7 @@ RCOutput_Navio::RCOutput_Navio()
 {
 }
 
-bool RCOutput_Navio::initialize(int channel)
+bool RCOutput_Navio::initialize(int)
 {
   static const uint8_t outputEnablePin = RPI_GPIO_27;
 
@@ -23,13 +23,13 @@ bool RCOutput_Navio::initialize(int channel)
   return true;
 }
 
-bool RCOutput_Navio::enable(int channel)
+bool RCOutput_Navio::enable(int)
 {
   pwm.initialize();
   return true;
 }
 
-bool RCOutput_Navio::set_frequency(int channel, float frequency)
+bool RCOutput_Navio::set_frequency(int, float frequency)
 {
   pwm.setFrequency(frequency);
   return true;

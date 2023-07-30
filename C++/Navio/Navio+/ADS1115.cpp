@@ -50,7 +50,7 @@ void ADS1115::updateConfigRegister()
   c = config.status | config.mux | config.gain | config.mode | config.rate | config.comparator
       | config.polarity | config.latch | config.queue;
 
-  if (I2Cdev::writeWord(address, ADS1115_RA_CONFIG, c) < 0)
+  if (!I2Cdev::writeWord(address, ADS1115_RA_CONFIG, c))
   {
     fprintf(stderr, "Error while writing config\n");
   }

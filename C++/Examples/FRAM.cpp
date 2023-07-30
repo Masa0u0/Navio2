@@ -14,7 +14,7 @@ int main()
     return 1;
   }
 
-  uint8_t dev_address = 0b1010000;
+  // uint8_t dev_address = 0b1010000;
   uint16_t reg_address = 0;
   uint8_t data = 0xCC;
   bool flag = true;

@@ -57,5 +57,10 @@ void Led_Navio::setColor(Colors color)
       led.setPWM(1, 4095);
       led.setPWM(0, 0);
       break;
+    case Colors::Black:
+      led.setPWM(2, 0);
+      led.setPWM(1, 0);
+      led.setPWM(0, 0);
+      break;
   }
 }

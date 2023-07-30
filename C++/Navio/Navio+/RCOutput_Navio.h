@@ -10,9 +10,9 @@ class RCOutput_Navio : public RCOutput
 {
 public:
   RCOutput_Navio();
-  bool initialize(int channel) override;
-  bool enable(int channel) override;
-  bool set_frequency(int channel, float frequency) override;
+  bool initialize(int) override;
+  bool enable(int) override;
+  bool set_frequency(int, float frequency) override;
   bool set_duty_cycle(int channel, float period) override;
 
 private:

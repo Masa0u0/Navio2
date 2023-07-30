@@ -1,5 +1,3 @@
-#pragma once
-
 #include "MS5611.h"
 
 /** MS5611 constructor.

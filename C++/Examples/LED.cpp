@@ -18,7 +18,7 @@ std::unique_ptr<Led> get_led()
   }
 }
 
-int main(int argc, char* argv[])
+int main(int, char* argv[])
 {
   if (check_apm())
   {

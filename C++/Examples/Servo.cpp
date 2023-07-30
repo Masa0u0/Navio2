@@ -42,7 +42,7 @@ std::unique_ptr<RCOutput> get_rcout()
   }
 }
 
-int main(int argc, char* argv[])
+int main(int, char* argv[])
 {
   auto pwm = get_rcout();
 
