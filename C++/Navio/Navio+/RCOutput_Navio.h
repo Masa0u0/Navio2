@@ -1,10 +1,7 @@
 #pragma once
 
-#include <Common/RCOutput.h>
-#include "PCA9685.h"
-#include <Common/gpio.h>
-
-using namespace Navio;
+#include "../Common/RCOutput.h"
+#include "./PCA9685.h"
 
 class RCOutput_Navio : public RCOutput
 {

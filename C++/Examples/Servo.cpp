@@ -26,8 +26,6 @@ sudo ./Servo
 
 #define PWM_OUTPUT 0
 
-using namespace Navio;
-
 std::unique_ptr<RCOutput> get_rcout()
 {
   if (get_navio_version() == NAVIO2)

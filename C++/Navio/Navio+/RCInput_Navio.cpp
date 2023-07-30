@@ -1,4 +1,9 @@
-#include "RCInput_Navio.h"
+#include <stdio.h>
+#include <pigpio/pigpio.h>
+
+#include "./RCInput_Navio.h"
+
+using namespace Navio;
 
 RCInput_Navio::RCInput_Navio()
 {
@@ -32,7 +37,7 @@ void RCInput_Navio::initialize()
   if (pin.init())
   {
     pin.setMode(Pin::GpioModeOutput);
-    pin.write(0); /* drive Output Enable low */
+    pin.write(0);  // drive Output Enable low
   }
   else
   {
@@ -40,7 +45,6 @@ void RCInput_Navio::initialize()
   }
 
   // GPIO setup
-
   gpioCfgClock(samplingRate, PI_DEFAULT_CLK_PERIPHERAL, 0);
   gpioInitialise();
   gpioSetMode(4, PI_INPUT);

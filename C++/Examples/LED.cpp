@@ -1,8 +1,9 @@
-#include <Navio2/Led_Navio2.h>
-#include <Navio+/Led_Navio.h>
-#include <Common/Util.h>
-#include <unistd.h>
 #include <memory>
+#include <unistd.h>
+
+#include <Common/Util.h>
+#include <Navio+/Led_Navio.h>
+#include <Navio2/Led_Navio2.h>
 
 std::unique_ptr<Led> get_led()
 {

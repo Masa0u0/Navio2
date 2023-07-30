@@ -1,4 +1,8 @@
-#include "PCA9685.h"
+#include <unistd.h>
+#include <math.h>
+
+#include "../Common/I2Cdev.h"
+#include "./PCA9685.h"
 
 PCA9685::PCA9685(uint8_t address)
 {

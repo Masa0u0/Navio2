@@ -1,4 +1,4 @@
-#include "ADC_Navio.h"
+#include "./ADC_Navio.h"
 
 ADC_Navio::ADC_Navio()
 {

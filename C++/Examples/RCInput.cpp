@@ -1,11 +1,11 @@
-#include <unistd.h>
+#include <memory>
 #include <cstdio>
 #include <iostream>
+#include <unistd.h>
 
-#include <Navio2/RCInput_Navio2.h>
-#include <Navio+/RCInput_Navio.h>
 #include <Common/Util.h>
-#include <memory>
+#include <Navio+/RCInput_Navio.h>
+#include <Navio2/RCInput_Navio2.h>
 
 #define READ_FAILED -1
 

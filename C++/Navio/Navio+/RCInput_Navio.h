@@ -1,12 +1,7 @@
 #pragma once
 
-#include <pigpio/pigpio.h>
-#include <stdio.h>
-#include <Common/RCInput.h>
-#include <Common/gpio.h>
-#include <Common/Util.h>
-
-using namespace Navio;
+#include "../Common/gpio.h"
+#include "../Common/RCInput.h"
 
 class RCInput_Navio : public RCInput
 {

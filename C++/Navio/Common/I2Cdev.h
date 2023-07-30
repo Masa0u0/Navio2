@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cinttypes>
 
 #define RASPBERRY_PI_I2C "/dev/i2c-1"
 #define BANANA_PI_I2C "/dev/i2c-2"

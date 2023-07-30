@@ -1,4 +1,7 @@
-#include "Led_Navio.h"
+#include "../Common/gpio.h"
+#include "./Led_Navio.h"
+
+using namespace Navio;
 
 Led_Navio::Led_Navio()
 {

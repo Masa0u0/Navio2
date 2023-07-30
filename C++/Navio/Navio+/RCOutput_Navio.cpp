@@ -1,4 +1,7 @@
-#include "RCOutput_Navio.h"
+#include "../Common/gpio.h"
+#include "./RCOutput_Navio.h"
+
+using namespace Navio;
 
 RCOutput_Navio::RCOutput_Navio()
 {
@@ -13,7 +16,7 @@ bool RCOutput_Navio::initialize(int)
   if (pin.init())
   {
     pin.setMode(Pin::GpioModeOutput);
-    pin.write(0); /* drive Output Enable low */
+    pin.write(0);  // drive Output Enable low
   }
   else
   {

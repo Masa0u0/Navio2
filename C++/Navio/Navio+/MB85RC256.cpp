@@ -1,4 +1,5 @@
-#include "MB85RC256.h"
+#include "../Common/I2Cdev.h"
+#include "./MB85RC256.h"
 
 MB85RC256::MB85RC256(uint8_t address)
 {
@@ -36,9 +37,8 @@ uint8_t MB85RC256::readBytes(uint16_t register_address, uint8_t length, uint8_t*
   uint8_t reg_address_low = register_address;        // lower part of the address
   uint8_t reg_address_high = register_address >> 8;  // higher part of the address
 
-  I2Cdev::writeByte(this->device_address, reg_address_high, reg_address_low);  // set the read
-                                                                               // pointer to the
-                                                                               // desired address
+  // set the read pointer to the desired address
+  I2Cdev::writeByte(this->device_address, reg_address_high, reg_address_low);
 
   return I2Cdev::readBytesNoRegAddress(this->device_address, length, data);
 }

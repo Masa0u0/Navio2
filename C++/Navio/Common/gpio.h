@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <cinttypes>
 
 namespace Navio
 {
@@ -49,7 +49,6 @@ public:
 private:
   int getRaspberryPiVersion() const;
   Pin(const Pin&);
-  Pin& operator=(const Pin&);
 
   uint8_t _pin;
   volatile uint32_t* _gpio;

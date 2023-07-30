@@ -1,9 +1,10 @@
-#include <unistd.h>
 #include <cstdio>
-#include <Common/Util.h>
-#include <Navio2/ADC_Navio2.h>
-#include <Navio+/ADC_Navio.h>
 #include <memory>
+#include <unistd.h>
+
+#include <Common/Util.h>
+#include <Navio+/ADC_Navio.h>
+#include <Navio2/ADC_Navio2.h>
 
 #define READ_FAILED -1
 

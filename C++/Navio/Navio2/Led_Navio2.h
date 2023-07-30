@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Common/Led.h>
-#include <Navio2/RGBled.h>
+#include "../Common/Led.h"
+#include "./RGBled.h"
 
 class Led_Navio2 : public Led
 {

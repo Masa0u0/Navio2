@@ -1,11 +1,11 @@
 #include <cstdio>
+#include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
-#include <cstdlib>
 #include <err.h>
 
-#include "ADC_Navio2.h"
-#include <Common/Util.h>
+#include "../Common/Util.h"
+#include "./ADC_Navio2.h"
 
 #define ADC_SYSFS_PATH "/sys/kernel/rcio/adc"
 

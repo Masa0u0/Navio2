@@ -1,9 +1,5 @@
 #pragma once
 
-#include <math.h>
-#include <unistd.h>
-#include <string>
-
 #include "I2Cdev.h"
 
 #define MS5611_ADDRESS_CSB_LOW 0x76

@@ -1,10 +1,7 @@
 #pragma once
 
-#include <Common/Led.h>
-#include "Navio+/PCA9685.h"
-#include <Common/gpio.h>
-
-using namespace Navio;
+#include "../Common/Led.h"
+#include "./PCA9685.h"
 
 class Led_Navio : public Led
 {

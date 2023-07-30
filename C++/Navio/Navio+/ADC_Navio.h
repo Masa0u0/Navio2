@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Common/ADC.h>
-#include <Common/Util.h>
-#include "ADS1115.h"
+#include "../Common/ADC.h"
+#include "../Common/Util.h"
+#include "./ADS1115.h"
 
 class ADC_Navio : public ADC
 {

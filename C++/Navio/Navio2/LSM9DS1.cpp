@@ -1,4 +1,4 @@
-#include "LSM9DS1.h"
+#include "./LSM9DS1.h"
 
 #define DEVICE_ACC_GYRO "/dev/spidev0.3"
 #define DEVICE_MAGNETOMETER "/dev/spidev0.2"

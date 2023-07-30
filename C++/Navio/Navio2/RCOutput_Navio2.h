@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PWM.h"
-#include <Common/RCOutput.h>
+#include "../Common/RCOutput.h"
+#include "./PWM.h"
 
 class RCOutput_Navio2 : public RCOutput
 {

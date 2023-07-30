@@ -1,40 +1,17 @@
-/*
-This code is provided under the BSD license.
-Copyright (c) 2014, Emlid Limited. All rights reserved.
-Written by Igor Vereninov and Mikhail Avkhimenia
-twitter.com/emlidtech || www.emlid.com || info@emlid.com
-
-Application: Mahory AHRS algorithm supplied with data from MPU9250 and LSM9DS1.
-Outputs roll, pitch and yaw in the console and sends quaternion
-over the network - it can be used with 3D IMU visualizer located in
-Navio/Applications/3D IMU visualizer.
-
-To run this app navigate to the directory containing it and run following commands:
-make
-sudo ./AHRS -i [sensor name] ipaddress portnumber
-Sensors names: mpu is MPU9250, lsm is LSM9DS1.
-If you want to visualize IMU data on another machine pass it's address and port
-For print help:
-./AHRS -h
-
-To achieve stable loop you need to run this application with a high priority
-on a linux kernel with real-time patch. Raspbian distribution with real-time
-kernel is available at emlid.com and priority can be set with chrt command:
-chrt -f -p 99 PID
-*/
-
-#include <stdio.h>
 #include <memory>
+#include <stdio.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <sys/time.h>
+
+#include <Common/Util.h>
 #include <Common/MPU9250.h>
 #include <Navio2/LSM9DS1.h>
-#include <Common/Util.h>
-#include "AHRS.hpp"
+
+#include "./AHRS.hpp"
 
 #define G_SI 9.80665
 #define PI 3.14159

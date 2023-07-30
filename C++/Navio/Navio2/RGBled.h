@@ -1,12 +1,7 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <cstdint>
-
-#include "Common/gpio.h"
-#include "Common/Led.h"
+#include "../Common/gpio.h"
+#include "../Common/Led.h"
 
 class RGBled
 {

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstddef>
-#include <Common/ADC.h>
+#include "../Common/ADC.h"
 
 class ADC_Navio2 : public ADC
 {

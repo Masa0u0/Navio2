@@ -1,11 +1,6 @@
 #pragma once
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <Common/I2Cdev.h>
+#include <cinttypes>
 
 class MB85RC256
 {

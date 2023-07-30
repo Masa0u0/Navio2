@@ -1,8 +1,7 @@
 #pragma once
 
-#include <stdint.h>
-#include <Common/SPIdev.h>
-#include <Common/InertialSensor.h>
+#include "./Common/SPIdev.h"
+#include "./Common/InertialSensor.h"
 
 class LSM9DS1 : public InertialSensor
 {

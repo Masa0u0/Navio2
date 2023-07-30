@@ -1,18 +1,8 @@
-/*
-Provided to you by Emlid Ltd (c) 2014.
-twitter.com/emlidtech || www.emlid.com || info@emlid.com
-
-Example: Get pressure from MS5611 barometer onboard of Navio shield for Raspberry Pi
-
-To run this example navigate to the directory containing it and run following commands:
-make
-./Barometer
-*/
+#include <unistd.h>
+#include <stdio.h>
 
 #include <Common/MS5611.h>
 #include <Common/Util.h>
-#include <unistd.h>
-#include <stdio.h>
 
 int main()
 {

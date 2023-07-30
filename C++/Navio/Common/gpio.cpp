@@ -1,20 +1,13 @@
+#include <cstddef>
+#include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include <fcntl.h>
-#include <poll.h>
-#include <errno.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <err.h>
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <string>
-#include <iostream>
-#include <stdexcept>
-
-#include "gpio.h"
+#include "./gpio.h"
 
 #define LOW 0
 #define HIGH 1

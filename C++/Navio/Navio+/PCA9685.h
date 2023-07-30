@@ -1,14 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <math.h>
-#include <string>
-
-#include "../Common/I2Cdev.h"
+#include <cinttypes>
 
 #define PCA9685_DEFAULT_ADDRESS 0x40  // All address pins low, Navio default
 

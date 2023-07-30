@@ -1,18 +1,9 @@
-/*
-Mahony AHRS algorithm implemented by Madgwick
-See: http://x-io.co.uk/open-source-imu-and-ahrs-algorithms/
-
-Adapted by Igor Vereninov (igor.vereninov@emlid.com)
-Provided to you by Emlid Ltd (c) 2014.
-twitter.com/emlidtech || www.emlid.com || info@emlid.com
-*/
-
-#ifndef AHRS_HPP
-#define AHRS_HPP
+#pragma once
 
 #include <cmath>
-#include <stdio.h>
 #include <memory>
+#include <stdio.h>
+
 #include <Common/InertialSensor.h>
 
 class AHRS
@@ -39,5 +30,3 @@ public:
   float getY();
   float getZ();
 };
-
-#endif  // AHRS_hpp
