@@ -8,7 +8,7 @@
 class PWM
 {
 public:
-  PWM();
+  explicit PWM();
 
   bool init(unsigned int channel);
   bool enable(unsigned int channel);

@@ -6,7 +6,7 @@
 class RCOutput_Navio2 : public RCOutput
 {
 public:
-  RCOutput_Navio2();
+  explicit RCOutput_Navio2();
   bool initialize(int channel) override;
   bool enable(int channel) override;
   bool set_frequency(int channel, float frequency) override;

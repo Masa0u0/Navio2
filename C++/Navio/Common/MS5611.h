@@ -41,7 +41,7 @@ public:
    * @param address I2C address
    * @see MS5611_DEFAULT_ADDRESS
    */
-  MS5611(uint8_t address = MS5611_DEFAULT_ADDRESS);
+  explicit MS5611(uint8_t address = MS5611_DEFAULT_ADDRESS);
 
   /** Power on and prepare for general usage.
    * This method reads coefficients stored in PROM.

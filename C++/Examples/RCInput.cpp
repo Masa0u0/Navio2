@@ -25,7 +25,7 @@ unique_ptr<RCInput> get_rcin()
   }
 }
 
-int main(int argc, char* argv[])
+int main()
 {
   if (check_apm())
   {

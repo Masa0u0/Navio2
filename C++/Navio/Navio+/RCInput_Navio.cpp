@@ -4,10 +4,6 @@ RCInput_Navio::RCInput_Navio()
 {
 }
 
-RCInput_Navio::~RCInput_Navio()
-{
-}
-
 void RCInput_Navio::ppmOnEdgeTrampolin(int gpio, int level, uint32_t tick, void* userdata)
 {
   RCInput_Navio* self = (RCInput_Navio*)userdata;
@@ -15,7 +11,7 @@ void RCInput_Navio::ppmOnEdgeTrampolin(int gpio, int level, uint32_t tick, void*
   self->ppmOnEdge(gpio, level, tick);
 }
 
-void RCInput_Navio::ppmOnEdge(int gpio, int level, uint32_t tick)
+void RCInput_Navio::ppmOnEdge(int, int level, uint32_t tick)
 {
   if (level == 0)
   {

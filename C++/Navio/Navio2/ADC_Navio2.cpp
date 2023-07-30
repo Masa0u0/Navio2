@@ -13,10 +13,6 @@ ADC_Navio2::ADC_Navio2()
 {
 }
 
-ADC_Navio2::~ADC_Navio2()
-{
-}
-
 void ADC_Navio2::initialize()
 {
   for (size_t i = 0; i < ARRAY_SIZE(channels); i++)

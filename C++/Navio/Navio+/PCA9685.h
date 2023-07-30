@@ -46,7 +46,7 @@ public:
    * @param address I2C address
    * @see PCA9685_DEFAULT_ADDRESS
    */
-  PCA9685(uint8_t address = PCA9685_DEFAULT_ADDRESS);
+  explicit PCA9685(uint8_t address = PCA9685_DEFAULT_ADDRESS);
 
   /** Power on and prepare for general usage.
    * This method reads prescale value stored in PCA9685 and calculate frequency based on it.

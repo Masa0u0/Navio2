@@ -7,11 +7,10 @@
 class ADC_Navio : public ADC
 {
 public:
+  explicit ADC_Navio();
   void initialize() override;
   int get_channel_count(void) override;
   int read(int ch) override;
-  ADC_Navio();
-  ~ADC_Navio();
 
 private:
   ADS1115 adc;

@@ -16,7 +16,7 @@
 
 using namespace std;
 
-int main(int argc, char** argv)
+int main(int, char** argv)
 {
   // Check superuser authority
   if (check_apm())

@@ -13,10 +13,6 @@ RCInput_Navio2::RCInput_Navio2()
 {
 }
 
-RCInput_Navio2::~RCInput_Navio2()
-{
-}
-
 void RCInput_Navio2::initialize()
 {
   for (size_t i = 0; i < ARRAY_SIZE(channels); i++)

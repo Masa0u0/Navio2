@@ -188,7 +188,7 @@ int Pin::getRaspberryPiVersion() const
     {
       return stoi(buffer);
     }
-    catch (std::invalid_argument)
+    catch (std::invalid_argument())
     {
     }
   }

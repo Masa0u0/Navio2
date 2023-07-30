@@ -11,13 +11,12 @@ using namespace Navio;
 class RCInput_Navio : public RCInput
 {
 public:
-  RCInput_Navio();
-  ~RCInput_Navio();
+  explicit RCInput_Navio();
   void initialize() override;
   int read(int ch) override;
 
 private:
-  void ppmOnEdge(int gpio, int level, uint32_t tick);
+  void ppmOnEdge(int, int level, uint32_t tick);
   static void ppmOnEdgeTrampolin(int gpio, int level, uint32_t tick, void* userdata);
 
   static const uint8_t outputEnablePin = RPI_GPIO_27;

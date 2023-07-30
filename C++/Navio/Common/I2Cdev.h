@@ -15,7 +15,7 @@
 class I2Cdev
 {
 public:
-  I2Cdev();
+  explicit I2Cdev();
 
   /** Read a single bit from an 8-bit device register.
    * @param devAddr I2C slave device address

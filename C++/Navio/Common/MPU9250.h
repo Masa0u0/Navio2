@@ -6,7 +6,7 @@
 class MPU9250 : public InertialSensor
 {
 public:
-  MPU9250();
+  explicit MPU9250();
 
   bool initialize();
   bool probe();

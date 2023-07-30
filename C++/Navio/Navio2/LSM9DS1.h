@@ -7,7 +7,7 @@
 class LSM9DS1 : public InertialSensor
 {
 public:
-  LSM9DS1();
+  explicit LSM9DS1();
 
   bool initialize();
   bool probe();

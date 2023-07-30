@@ -9,7 +9,7 @@ using namespace Navio;
 class RCOutput_Navio : public RCOutput
 {
 public:
-  RCOutput_Navio();
+  explicit RCOutput_Navio();
   bool initialize(int) override;
   bool enable(int) override;
   bool set_frequency(int, float frequency) override;

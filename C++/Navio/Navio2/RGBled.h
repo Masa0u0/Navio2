@@ -11,7 +11,7 @@
 class RGBled
 {
 public:
-  RGBled();
+  explicit RGBled();
 
   bool initialize();
   void setColor(Colors color);

@@ -6,10 +6,9 @@
 class RCInput_Navio2 : public RCInput
 {
 public:
+  explicit RCInput_Navio2();
   void initialize() override;
   int read(int ch) override;
-  RCInput_Navio2();
-  ~RCInput_Navio2();
 
 private:
   int open_channel(int ch);

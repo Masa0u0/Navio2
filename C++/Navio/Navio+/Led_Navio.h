@@ -9,7 +9,7 @@ using namespace Navio;
 class Led_Navio : public Led
 {
 public:
-  Led_Navio();
+  explicit Led_Navio();
   bool initialize() override;
   void setColor(Colors color) override;
 

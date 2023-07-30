@@ -37,7 +37,7 @@ public:
     GpioModeOutput
   } GpioMode;
 
-  Pin(uint8_t pin);
+  explicit Pin(uint8_t pin);
   ~Pin();
 
   bool init();

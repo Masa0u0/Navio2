@@ -6,7 +6,7 @@
 class Led_Navio2 : public Led
 {
 public:
-  Led_Navio2();
+  explicit Led_Navio2();
   bool initialize() override;
   void setColor(Colors color) override;
 

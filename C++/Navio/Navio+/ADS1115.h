@@ -97,7 +97,7 @@ public:
    * Default mode is singleshot
    * @param address
    */
-  ADS1115(uint8_t address = ADS1115_DEFAULT_ADDRESS);
+  explicit ADS1115(uint8_t address = ADS1115_DEFAULT_ADDRESS);
 
   /** Verify the I2C connection.
    * @return True if connection is valid, false otherwise

@@ -359,7 +359,7 @@ public:
 
 private:
   int sockfd;
-  struct sockaddr_in servaddr = { 0 };
+  struct sockaddr_in servaddr;
   char sendline[80];
 };
 
