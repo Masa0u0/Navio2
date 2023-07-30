@@ -63,7 +63,7 @@ public:
 private:
   UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
 
-  uint8_t* message_;     // Pointer to the scanner's message buffer
+  uint8_t* message_;  // Pointer to the scanner's message buffer
   uint16_t latest_id_;
 };
 

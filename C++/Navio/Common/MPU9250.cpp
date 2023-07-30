@@ -1,8 +1,3 @@
-/*
-Written by Qiyong Mu (kylongmu@msn.com)
-Adapted for Raspberry Pi by Mikhail Avkhimenia (mikhail.avkhimenia@emlid.com)
-*/
-
 #include "MPU9250.h"
 
 #define G_SI 9.80665
@@ -10,7 +5,7 @@ Adapted for Raspberry Pi by Mikhail Avkhimenia (mikhail.avkhimenia@emlid.com)
 
 //-----------------------------------------------------------------------------------------------
 
-MPU9250::MPU9250(): spi_dev_("/dev/spidev0.1")
+MPU9250::MPU9250() : spi_dev_("/dev/spidev0.1")
 {
 }
 

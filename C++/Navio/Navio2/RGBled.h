@@ -1,24 +1,23 @@
-#ifndef _RGBLED_H_
-#define _RGBLED_H_
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <cstdint>
+
 #include "Common/gpio.h"
 #include "Common/Led.h"
 
-class RGBled {
+class RGBled
+{
 public:
-    RGBled();
+  RGBled();
 
-    bool initialize();
-    void setColor(Colors color);
+  bool initialize();
+  void setColor(Colors color);
 
 private:
-    Navio::Pin *pinR;
-    Navio::Pin *pinG;
-    Navio::Pin *pinB;
+  Navio::Pin* pinR;
+  Navio::Pin* pinG;
+  Navio::Pin* pinB;
 };
-
-#endif //_RGBLED_H_
