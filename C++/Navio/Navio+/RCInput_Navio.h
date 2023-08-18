@@ -1,51 +1,37 @@
-#ifndef RCINPUT_NAVIO_H
-#define RCINPUT_NAVIO_H
+#pragma once
 
-// #include <pigpio.h>
-#include <pigpio/pigpio.h>
-#include <stdio.h>
-#include <Common/RCInput.h>
-#include <Common/gpio.h>
-#include <Common/Util.h>
-
-using namespace Navio;
-
+#include "../Common/gpio.h"
+#include "../Common/RCInput.h"
 
 class RCInput_Navio : public RCInput
 {
-
 public:
-    RCInput_Navio();
-    ~RCInput_Navio();
-    void initialize() override;
-    int read(int ch) override;
+  explicit RCInput_Navio();
+  void initialize() override;
+  int read(int ch) override;
 
 private:
+  void ppmOnEdge(int, int level, uint32_t tick);
+  static void ppmOnEdgeTrampolin(int gpio, int level, uint32_t tick, void* userdata);
 
-    void ppmOnEdge(int gpio, int level, uint32_t tick);
-    static void ppmOnEdgeTrampolin(int gpio, int level, uint32_t tick, void *userdata);
+  static const uint8_t outputEnablePin = RPI_GPIO_27;
 
-    static const uint8_t outputEnablePin = RPI_GPIO_27;
+  //================================ Options =====================================
 
-    //================================ Options =====================================
+  uint32_t samplingRate = 1;         // 1 microsecond (can be 1,2,4,5,10)
+  uint32_t ppmInputGpio = 4;         // PPM input on Navio's 2.54 header
+  uint32_t ppmSyncLength = 4000;     // Length of PPM sync pause
+  uint32_t ppmChannelsNumber = 8;    // Number of channels packed in PPM
+  uint32_t servoFrequency = 50;      // Servo control frequency
+  bool verboseOutputEnabled = true;  // Output channels values to console
 
-    unsigned int samplingRate      = 1;      // 1 microsecond (can be 1,2,4,5,10)
-    unsigned int ppmInputGpio      = 4;      // PPM input on Navio's 2.54 header
-    unsigned int ppmSyncLength     = 4000;   // Length of PPM sync pause
-    unsigned int ppmChannelsNumber = 8;      // Number of channels packed in PPM
-    unsigned int servoFrequency    = 50;     // Servo control frequency
-    bool verboseOutputEnabled      = true;   // Output channels values to console
+  //================================== Data ======================================
 
-    //================================== Data ======================================
+  float channels[8];
 
-    float channels[8];
+  //============================== PPM decoder ===================================
 
-    //============================== PPM decoder ===================================
-
-    unsigned int currentChannel = 0;
-    unsigned int previousTick;
-    unsigned int deltaTime;
-
+  uint32_t currentChannel = 0;
+  uint32_t previousTick;
+  uint32_t deltaTime;
 };
-
-#endif // RCINPUT_NAVIO_H

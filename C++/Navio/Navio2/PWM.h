@@ -1,21 +1,15 @@
-#ifndef _PWD_H_
-#define _PWD_H_
+#pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <errno.h>
+#include <cinttypes>
 
-class PWM {
+class PWM
+{
 public:
-    PWM();
+  explicit PWM();
 
-    bool init(unsigned int channel);
-    bool enable(unsigned int channel);
-    bool set_period(unsigned int channel, unsigned int freq);
-    /* Note: period [ms] */
-    bool set_duty_cycle(unsigned int channel, float period);
+  bool init(uint32_t channel);
+  bool enable(uint32_t channel);
+  bool set_period(uint32_t channel, uint32_t freq);
+  /* Note: period [ms] */
+  bool set_duty_cycle(uint32_t channel, float period);
 };
-
-#endif //_PWD_H_
-

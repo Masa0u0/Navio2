@@ -1,137 +1,83 @@
-/*
-Provided to you by Emlid Ltd (c) 2014.
-twitter.com/emlidtech || www.emlid.com || info@emlid.com
+#include <vector>
+#include <iostream>
 
-Example: Receive position information with GPS driver onboard of Navio shield for Raspberry Pi.
-
-Ublox GPS receiver is connected as an SPI device 0.0(/dev/spidev0.0).
-The receiver sends information over SPI in an endless stream,
-this program is intended to show, how to capture ubx protocol messages
-from the stream and extract useful information from them.
-
-To run this example navigate to the directory containing it and run following commands:
-make
-./gps
-*/
-
-//#define _XOPEN_SOURCE 600
 #include <Common/Ublox.h>
 #include <Common/Util.h>
 
+#define MEASUREMENT_RATE 100  // [ms]
+#define SLEEP_TIME 200        // [us]
+
 using namespace std;
 
-int main(int argc, char *argv[]){
+int main()
+{
+  if (check_apm())
+  {
+    return 1;
+  }
 
-    if (check_apm()) {
-        return 1;
-    }
+  // Ublox class instance
+  Ublox gps;
 
-    // This vector is used to store location data, decoded from ubx messages.
-    // After you decode at least one message successfully, the information is stored in vector
-    // in a way described in function decodeMessage(vector<double>& data) of class UBXParser(see ublox.h)
+  // Payloads
+  NavPayload_POSLLH posllh;
+  NavPayload_STATUS status;
+  NavPayload_PVT pvt;
+  NavPayload_VELNED velned;
+  NavPayload_COV cov;
 
-    std::vector<double> pos_data;
+  // Set message rate
+  gps.enableNavMsg(Ublox::NAV_POSLLH, false);
+  gps.enableNavMsg(Ublox::NAV_STATUS, true);
+  gps.enableNavMsg(Ublox::NAV_PVT, true);
+  gps.enableNavMsg(Ublox::NAV_VELNED, false);
+  gps.enableNavMsg(Ublox::NAV_COV, true);
 
+  // Navigation/measurement rate settings
+  if (!gps.configureSolutionRate(MEASUREMENT_RATE))
+  {
+    cerr << "Failed to configure solution rate." << endl;
+    return 1;
+  }
 
-    // create ublox class instance
-    Ublox gps;
+  uint32_t cnt_posllh = 0;
+  uint32_t cnt_status = 0;
+  uint32_t cnt_pvt = 0;
+  uint32_t cnt_velned = 0;
+  uint32_t cnt_cov = 0;
 
-    // Here we test connection with the receiver. Function testConnection() waits for a ubx protocol message and checks it.
-    // If there's at least one correct message in the first 300 symbols the test is passed
-    if(gps.testConnection())
+  while (true)
+  {
+    const auto msg_id = gps.update();
+
+    switch (msg_id)
     {
-        printf("Ublox test OK\n");
-        if (gps.configureSolutionRate(1000) < 0)
-        {
-            printf("Setting new rate: FAILED\n");
-            return 1;
-        }
-
-        // gps.decodeMessages();
-        // You can use this function to decode all messages, incoming from the GPS receiver. The function starts an infinite loop.
-        // In this example we can only decode NAV_STATUS and NAV-POSLLH messages, the others are simply ignored.
-        // You can add new message types in function decodeMessage() of class UBXParser(see ublox.h)
-
-
-        // Here, however we use a different approach. Instead of trying to extract info from every message(as done in decodeMessages()),
-        // this function waits for a message of a specified type and gets you just the information you need
-        // In this example we decode NAV_STATUS and NAV-POSLLH messages, adding new types, however is quite easy
-
-        while (true)
-        {
-
-            if (gps.decodeSingleMessage(Ublox::NAV_POSLLH, pos_data) == 1)
-            {
-                // after desired message is successfully decoded, we can use the information stored in pos_data vector
-                // right here, or we can do something with it from inside decodeSingleMessage() function(see ublox.h).
-                // the way, data is stored in pos_data vector is specified in decodeMessage() function of class UBXParser(see ublox.h)
-                printf("GPS Millisecond Time of Week: %.0lf s\n", pos_data[0]/1000);
-                printf("Longitude: %lf\n", pos_data[1]/10000000);
-                printf("Latitude: %lf\n", pos_data[2]/10000000);
-                printf("Height above Ellipsoid: %.3lf m\n", pos_data[3]/1000);
-                printf("Height above mean sea level: %.3lf m\n", pos_data[4]/1000);
-                printf("Horizontal Accuracy Estateimate: %.3lf m\n", pos_data[5]/1000);
-                printf("Vertical Accuracy Estateimate: %.3lf m\n", pos_data[6]/1000);
-
-            } else {
-                // printf("Message not captured\n");
-                // use this to see, how often you get the right messages
-                // to increase the frequency you can turn off the undesired messages or tweak ublox settings
-                // to increase internal receiver frequency
-            }
-
-            if (gps.decodeSingleMessage(Ublox::NAV_STATUS, pos_data) == 1)
-            {
-                printf("Current GPS status:\n");
-                printf("gpsFixOk: %d\n", ((int)pos_data[1] & 0x01));
-
-                printf("gps Fix status: ");
-                switch((int)pos_data[0]){
-                    case 0x00:
-                        printf("no fix\n");
-                        break;
-
-                    case 0x01:
-                        printf("dead reckoning only\n");
-                        break;
-
-                    case 0x02:
-                        printf("2D-fix\n");
-                        break;
-
-                    case 0x03:
-                        printf("3D-fix\n");
-                        break;
-
-                    case 0x04:
-                        printf("GPS + dead reckoning combined\n");
-                        break;
-
-                    case 0x05:
-                        printf("Time only fix\n");
-                        break;
-
-                    default:
-                        printf("Reserved value. Current state unknown\n");
-                        break;
-
-                }
-
-                printf("\n");
-
-            } else {
-                // printf("Status Message not captured\n");
-            }
-
-
-            usleep(200);
-        }
-
-    } else {
-
-        printf("Ublox test not passed\nAbort program!\n");
-
+      case Ublox::NAV_POSLLH:
+        gps.decode(posllh);
+        cout << "NAV_POSLLH(" << ++cnt_posllh << "):" << endl << posllh << endl;
+        break;
+      case Ublox::NAV_STATUS:
+        gps.decode(status);
+        cout << "NAV_STATUS(" << ++cnt_status << "):" << endl << status << endl;
+        break;
+      case Ublox::NAV_PVT:
+        gps.decode(pvt);
+        cout << "NAV_PVT(" << ++cnt_pvt << "):" << endl << pvt << endl;
+        break;
+      case Ublox::NAV_VELNED:
+        gps.decode(velned);
+        cout << "NAV_VELNED(" << ++cnt_velned << "):" << endl << velned << endl;
+        break;
+      case Ublox::NAV_COV:
+        gps.decode(cov);
+        cout << "NAV_COV(" << ++cnt_cov << "):" << endl << cov << endl;
+        break;
+      default:
+        break;
     }
 
-    return 0;
+    usleep(SLEEP_TIME);
+  }
+
+  return 0;
 }

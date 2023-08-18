@@ -1,160 +1,235 @@
-/*
-GPS driver dcode is placed under the BSD license.
-Written by Egor Fedorov (egor.fedorov@emlid.com)
-Copyright (c) 2014, Emlid Limited
-All rights reserved.
+#pragma once
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the Emlid Limited nor the names of its contributors
-      may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL EMLID LIMITED BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-//#define _XOPEN_SOURCE 600
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
 #include <string>
-#include <stdint.h>
-#include <vector>
-#include "SPIdev.h"
 
-#define PACKED __attribute__((__packed__))
+#include "./SPIdev.h"
+#include "./nav_payloads.hpp"
 
-static const int UBX_BUFFER_LENGTH = 1024;
+#define PACKED __attribute__((__packed__))  // 構造体のメンバ変数がメモリ上で連続する
 
-class UBXScanner {
-public:
-    enum State
-    {
-        Sync1,
-        Sync2,
-        Class,
-        ID,
-        Length1,
-        Length2,
-        Payload,
-        CK_A,
-        CK_B,
-        Done
-    };
+static constexpr uint32_t kUbxBufferLength = 1024;
+static constexpr uint32_t kPreambleOffset = 2;
+static constexpr uint32_t kSpiSpeedHz = 200000;  // Maximum frequency is 5.5MHz
+static constexpr uint32_t kConfigureMessageSize = 11;
+static constexpr uint32_t kMinMaxTrkChForMajorGnss = 4;
+static constexpr uint32_t kWaitForGnssAcknowledgement = 500000;  // [us]
 
-    unsigned char message[UBX_BUFFER_LENGTH];   // Buffer for UBX message
-    unsigned int message_length;    // Length of the received message
-
-private:
-    unsigned int position;          // Indicates current buffer offset
-    unsigned int payload_length;  // Length of current message payload
-    State state;                    // Current scanner state
-
-public:
-    UBXScanner();
-    unsigned char* getMessage();
-    unsigned int getMessageLength();
-    unsigned int getPosition();
-    void reset();
-    int update(unsigned char data);
-};
-
-class UBXParser{
-private:
-    UBXScanner* scanner; // pointer to the scanner, which finds the messages in the data stream
-    unsigned char* message; // pointer to the scanner's message buffer
-    unsigned int length; // current message length
-    unsigned int position; // current message end position
-
-public:
-    UBXParser(UBXScanner* ubxsc);
-    void updateMessageData();
-    int decodeMessage(std::vector<double>& data);
-    int checkMessage();
-};
-
-class Ublox {
-public:
-enum message_t
+class UBXScanner
 {
-    NAV_POSLLH = (0x01<<8) + 0x02,
-    NAV_STATUS = (0x01<<8) + 0x03,
-    NAV_PVT = (0x01<<8) + 0x07,
-    NAV_COV = (0x01<<8) + 0x36,
+public:
+  enum State
+  {
+    Sync1,
+    Sync2,
+    Class,
+    ID,
+    Length1,
+    Length2,
+    Payload,
+    CK_A,
+    CK_B,
+    Done,
+  };
+
+  explicit UBXScanner();
+
+  uint8_t* getMessage();
+  const uint32_t& getMessageLength() const;
+  const uint32_t& getPosition() const;
+
+  void reset();
+  int update(uint8_t data);
+
+private:
+  uint8_t message_[kUbxBufferLength];  // Buffer for UBX message
+  uint32_t message_length_;            // Length of the received message
+  uint32_t position_;                  // Indicates current buffer offset
+  uint32_t payload_length_;            // Length of current message payload
+  State state_;                        // Current scanner state
 };
 
+class UBXParser
+{
+public:
+  explicit UBXParser(UBXScanner* ubxsc);
+
+  uint16_t calcId();
+
+  uint8_t* getMessage() const;
+  const uint32_t& getLength() const;
+  const uint32_t& getPosition() const;
+  const uint16_t& getLatestId() const;
+
 private:
-    enum ubx_protocol_bytes {
-        PREAMBLE1 = 0xb5,
-        PREAMBLE2 = 0x62,
+  UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
 
-        CLASS_CFG = 0x06,
+  uint8_t* message_;  // Pointer to the scanner's message buffer
+  uint16_t latest_id_;
+};
 
-        MSG_CFG_RATE = 0x08
-    };
+/**
+ * @brief Ublox handler.
+ * datasheet:
+ * https://content.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_UBX-13003221.pdf
+ */
+class Ublox
+{
+private:
+  enum ubx_protocol_bytes
+  {
+    PREAMBLE1 = 0xb5,
+    PREAMBLE2 = 0x62,
 
-    struct PACKED CfgNavRate {
-        std::uint16_t measure_rate;
-        std::uint16_t nav_rate;
-        std::uint16_t timeref;
-    };
+    CLASS_CFG = 0x06,
+    CLASS_NAV = 0x01,
 
-    struct PACKED UbxHeader {
-        std::uint8_t preamble1;
-        std::uint8_t preamble2;
-        std::uint8_t msg_class;
-        std::uint8_t msg_id;
-        std::uint16_t length;
-    };
-
-    struct PACKED CheckSum {
-        uint8_t CK_A;
-        uint8_t CK_B;
-    };
-
-    std::string spi_device_name;
-    UBXScanner* scanner;
-    UBXParser* parser;   
+    ID_CFG_MSG = 0x01,
+    ID_CFG_RATE = 0x08,
+    ID_CFG_NAV5 = 0x24,
+    ID_CFG_GNSS = 0x3E,
+    ID_NAV_POSLLH = 0x02,
+    ID_NAV_STATUS = 0x03,
+    ID_NAV_PVT = 0x07,
+    ID_NAV_VELNED = 0x12,
+    ID_NAV_COV = 0x36,
+  };
 
 public:
-    Ublox(std::string name = "/dev/spidev0.0");
-    Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
-    int enableNAV_POSLLH();
-    int enableNAV_STATUS();
-    int enableNAV_PVT();
-    int enableNAV_COV();
-    int testConnection();
-    int configureSolutionRate(std::uint16_t meas_rate,
-                              std::uint16_t nav_rate = 1,
-                              std::uint16_t timeref = 0);
-    int decodeMessages();
-    int decodeSingleMessage(message_t msg, std::vector<double>& position_data);
+  // Class + ID
+  enum message_t
+  {
+    NAV_POSLLH = (CLASS_NAV << 8) + ID_NAV_POSLLH,
+    NAV_STATUS = (CLASS_NAV << 8) + ID_NAV_STATUS,
+    NAV_PVT = (CLASS_NAV << 8) + ID_NAV_PVT,
+    NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
+    NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
+  };
+
+  enum dynamics_model
+  {
+    PORTABLE = 0,
+    STATIONARY = 2,
+    PEDESTRIAN = 3,
+    AUTOMOTIVE = 4,
+    SEA = 5,
+    AIRBORNE_1G = 6,
+    AIRBORNE_2G = 7,
+    AIRBORNE_4G = 8,
+    WRIST_WORN_WATCH = 9,
+    MOTORBIKE = 10,
+    ROBOTIC_LAWN_MOWER = 11,
+    ELECTRIC_KICK_SCOOTER = 12,
+  };
+
+  explicit Ublox();
+  explicit Ublox(UBXScanner* scan, UBXParser* pars);
+
+  /* 32.10.18.3 Set message rate */
+  bool enableNavMsg(message_t msg, bool enable);
+  bool enableAllNavMsgs(bool enable);
+
+  /* 32.10.27.1 Navigation/measurement rate settings */
+  bool configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
+
+  /* 32.10.19.1 Navigation engine settings */
+  bool configureDynamicsModel(dynamics_model dyn_model);
+
+  /* 32.10.13.1 GNSS system configuration */
+  bool configureGnss_GPS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
+  bool configureGnss_SBAS(bool enable, uint8_t res_track_ch = 1, uint8_t max_track_ch = 3);
+  bool configureGnss_Galileo(bool enable, uint8_t res_track_ch = 4, uint8_t max_track_ch = 8);
+  bool configureGnss_BeiDou(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 16);
+  bool configureGnss_QZSS(bool enable, uint8_t res_track_ch = 0, uint8_t max_track_ch = 3);
+  bool configureGnss_GLONASS(bool enable, uint8_t res_track_ch = 8, uint8_t max_track_ch = 14);
+
+  uint16_t update();
+
+  void decode(NavPayload_POSLLH& data) const;
+  void decode(NavPayload_STATUS& data) const;
+  void decode(NavPayload_PVT& data) const;
+  void decode(NavPayload_VELNED& data) const;
+  void decode(NavPayload_COV& data) const;
 
 private:
-    int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void *msg, std::uint16_t size);
-    int _spliceMemory(unsigned char *dest, const void * const src, size_t size, int dest_offset = 0);
-    /* p.171, 32.4 UBX Checksum */
-    CheckSum _calculateCheckSum(unsigned char message[], std::size_t size);
-}; // end of ublox class def
+  struct PACKED UbxHeader
+  {
+    uint8_t preamble1;
+    uint8_t preamble2;
+    uint8_t msg_class;
+    uint8_t msg_id;
+    uint16_t length;
+  };
+
+  struct PACKED CheckSum
+  {
+    uint8_t CK_A;
+    uint8_t CK_B;
+  };
+
+  /* ===== Payload structures ===== */
+  struct PACKED CfgMsg
+  {
+    uint8_t msgClass;
+    uint8_t msgID;
+    uint8_t rate;
+  };
+
+  struct PACKED CfgRate
+  {
+    uint16_t measRate;
+    uint16_t navRate;
+    uint16_t timeRef;
+  };
+
+  struct PACKED CfgNav5
+  {
+    uint16_t mask;
+    uint8_t dynModel;
+    uint8_t fixMode;
+    int32_t fixedAlt;
+    uint32_t fixedAltVar;
+    int8_t minElev;
+    uint8_t drLimit;
+    uint16_t pDop;
+    uint16_t tDop;
+    uint16_t pAcc;
+    uint16_t tAcc;
+    uint8_t staticHoldThresh;
+    uint8_t dgnssTimeout;
+    uint8_t cnoThreshNumSVs;
+    uint8_t cnoThresh;
+    uint8_t reserved1[2];
+    uint16_t staticHoldMaxDist;
+    uint8_t utcStandard;
+    uint8_t reserved2[5];
+  };
+
+  struct PACKED CfgGnssBlock
+  {
+    uint8_t gnssId;
+    uint8_t resTrkCh;
+    uint8_t maxTrkCh;
+    uint8_t reserved1;
+    uint32_t flags;
+  };
+
+  struct PACKED CfgGnss
+  {
+    uint8_t msgVer;
+    uint8_t numTrkChHw;
+    uint8_t numTrkChUse;
+    uint8_t numConfigBlocks;  // Always 1
+    CfgGnssBlock block;
+  };
+  /* ==============================*/
+
+  SPIdev spi_dev_;
+  UBXScanner* scanner_;
+  UBXParser* parser_;
+
+  bool sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size);
+  int spliceMemory(uint8_t* dest, const void* const src, size_t size, int dest_offset = 0);
+
+  /* p.171, 32.4 UBX Checksum. */
+  CheckSum calculateCheckSum(uint8_t* message, size_t size) const;
+};

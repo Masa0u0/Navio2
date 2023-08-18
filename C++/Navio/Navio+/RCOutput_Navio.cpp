@@ -1,40 +1,45 @@
-#include "RCOutput_Navio.h"
+#include "../Common/gpio.h"
+#include "./RCOutput_Navio.h"
+
+using namespace Navio;
 
 RCOutput_Navio::RCOutput_Navio()
 {
 }
 
-bool RCOutput_Navio::initialize(int channel)
+bool RCOutput_Navio::initialize(int)
 {
-    static const uint8_t outputEnablePin = RPI_GPIO_27;
+  static const uint8_t outputEnablePin = RPI_GPIO_27;
 
+  Pin pin(outputEnablePin);
 
-    Pin pin(outputEnablePin);
+  if (pin.init())
+  {
+    pin.setMode(Pin::GpioModeOutput);
+    pin.write(0);  // drive Output Enable low
+  }
+  else
+  {
+    return false;
+  }
 
-    if (pin.init()) {
-        pin.setMode(Pin::GpioModeOutput);
-        pin.write(0); /* drive Output Enable low */
-    } else {
-        return false;
-    }
-
-    return true;
+  return true;
 }
 
-bool RCOutput_Navio::enable(int channel)
+bool RCOutput_Navio::enable(int)
 {
-    pwm.initialize();
-    return true;
+  pwm.initialize();
+  return true;
 }
 
-bool RCOutput_Navio::set_frequency(int channel, float frequency)
+bool RCOutput_Navio::set_frequency(int, float frequency)
 {
-    pwm.setFrequency(frequency);
-    return true;
+  pwm.setFrequency(frequency);
+  return true;
 }
 
 bool RCOutput_Navio::set_duty_cycle(int channel, float period)
 {
-    pwm.setPWMmS(channel+3, period / 1000); // 1st Navio RC output is 3
-    return true;
+  pwm.setPWMmS(channel + 3, period / 1000);  // 1st Navio RC output is 3
+  return true;
 }

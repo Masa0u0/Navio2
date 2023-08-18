@@ -16,7 +16,7 @@ public:
     DSHOT_600,
   };
 
-  DSHOT(uint32_t dshot_type);
+  explicit DSHOT(uint32_t dshot_type);
   ~DSHOT();
 
   void initialize(uint32_t pin);
