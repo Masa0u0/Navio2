@@ -28,7 +28,7 @@ set(LIB_SRC_FILES
 	Navio/Common/I2Cdev.cpp
 	Navio/Common/MPU9250.cpp
 	Navio/Common/MS5611.cpp
-	Navio/Common/nav_payloads.cpp
+	Navio/Common/ubx_payload.cpp
 	Navio/Common/Ublox.cpp
 	Navio/Common/Util.cpp
 	Navio/Common/gpio.cpp

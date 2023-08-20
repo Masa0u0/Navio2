@@ -152,7 +152,7 @@ const uint32_t& UBXParser::getPosition() const
   return scanner_->getPosition();
 }
 
-const uint16_t& UBXParser::getLatestId() const
+const uint16_t& UBXParser::getLatestMsg() const
 {
   return latest_id_;
 }
@@ -167,28 +167,31 @@ Ublox::Ublox(UBXScanner* scan, UBXParser* pars)
 {
 }
 
-bool Ublox::enableNavMsg(message_t msg, bool enable)
+bool Ublox::enableMsg(message_t msg, bool enable)
 {
   CfgMsg cfg_msg;
 
-  cfg_msg.msgClass = CLASS_NAV;
-  cfg_msg.msgID = msg - (CLASS_NAV << 8);
+  cfg_msg.msgClass = msg >> 8;                       // 上位8ビット
+  cfg_msg.msgID = static_cast<uint8_t>(msg & 0xFF);  // 下位8ビット
   cfg_msg.rate = enable;
 
   return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
 }
 
-bool Ublox::enableAllNavMsgs(bool enable)
+bool Ublox::enableAllMsgs(bool enable)
 {
   bool ok = true;
 
-  ok &= enableNavMsg(NAV_POSLLH, enable);
-  ok &= enableNavMsg(NAV_STATUS, enable);
-  ok &= enableNavMsg(NAV_DOP, enable);
-  ok &= enableNavMsg(NAV_PVT, enable);
-  ok &= enableNavMsg(NAV_VELNED, enable);
-  ok &= enableNavMsg(NAV_TIMEGPS, enable);
-  ok &= enableNavMsg(NAV_COV, enable);
+  ok &= enableMsg(NAV_POSLLH, enable);
+  ok &= enableMsg(NAV_STATUS, enable);
+  ok &= enableMsg(NAV_DOP, enable);
+  ok &= enableMsg(NAV_PVT, enable);
+  ok &= enableMsg(NAV_VELNED, enable);
+  ok &= enableMsg(NAV_TIMEGPS, enable);
+  ok &= enableMsg(NAV_COV, enable);
+
+  ok &= enableMsg(MON_HW, enable);
+  ok &= enableMsg(MON_HW2, enable);
 
   return ok;
 }
@@ -360,9 +363,9 @@ uint16_t Ublox::update()
   return parser_->calcId();
 }
 
-void Ublox::decode(NavPayload_POSLLH& data) const
+void Ublox::decode(NavPosllhPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_POSLLH)
+  if (parser_->getLatestMsg() != Ublox::NAV_POSLLH)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -371,14 +374,14 @@ void Ublox::decode(NavPayload_POSLLH& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.lon = ((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-7;
-  data.lat = ((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-7;
-  data.hMSL = ((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22))) * 1e-3;
+  data.lon = int((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-7;
+  data.lat = int((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-7;
+  data.hMSL = int((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22))) * 1e-3;
 }
 
-void Ublox::decode(NavPayload_STATUS& data) const
+void Ublox::decode(NavStatusPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_STATUS)
+  if (parser_->getLatestMsg() != Ublox::NAV_STATUS)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -387,18 +390,18 @@ void Ublox::decode(NavPayload_STATUS& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.gpsFix = *(s + 10);
-  data.flags = *(s + 11);
+  data.gpsFix = uint8_t(*(s + 10));
+  data.flags = uint8_t(*(s + 11));
 }
 
-void Ublox::decode(NavPayload_DOP& data) const
+void Ublox::decode(NavDopPayload& data) const
 {
   throw;  // TODO
 }
 
-void Ublox::decode(NavPayload_PVT& data) const
+void Ublox::decode(NavPvtPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_PVT)
+  if (parser_->getLatestMsg() != Ublox::NAV_PVT)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -407,24 +410,24 @@ void Ublox::decode(NavPayload_PVT& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.year = (*(s + 11) << 8) | (*(s + 10));
-  data.month = *(s + 12);
-  data.day = *(s + 13);
-  data.hour = *(s + 14);
-  data.min = *(s + 15);
-  data.sec = *(s + 16);
+  data.year = uint16_t((*(s + 11) << 8) | (*(s + 10)));
+  data.month = uint8_t(*(s + 12));
+  data.day = uint8_t(*(s + 13));
+  data.hour = uint8_t(*(s + 14));
+  data.min = uint8_t(*(s + 15));
+  data.sec = uint8_t(*(s + 16));
 
-  data.lon = ((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;
-  data.lat = ((*(s + 37) << 24) | (*(s + 36) << 16) | (*(s + 35) << 8) | (*(s + 34))) * 1e-7;
-  data.hMSL = ((*(s + 45) << 24) | (*(s + 44) << 16) | (*(s + 43) << 8) | (*(s + 42))) * 1e-3;
-  data.velN = ((*(s + 57) << 24) | (*(s + 56) << 16) | (*(s + 55) << 8) | (*(s + 54))) * 1e-3;
-  data.velE = ((*(s + 61) << 24) | (*(s + 60) << 16) | (*(s + 59) << 8) | (*(s + 58))) * 1e-3;
-  data.velD = ((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62))) * 1e-3;
+  data.lon = int((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;
+  data.lat = int((*(s + 37) << 24) | (*(s + 36) << 16) | (*(s + 35) << 8) | (*(s + 34))) * 1e-7;
+  data.hMSL = int((*(s + 45) << 24) | (*(s + 44) << 16) | (*(s + 43) << 8) | (*(s + 42))) * 1e-3;
+  data.velN = int((*(s + 57) << 24) | (*(s + 56) << 16) | (*(s + 55) << 8) | (*(s + 54))) * 1e-3;
+  data.velE = int((*(s + 61) << 24) | (*(s + 60) << 16) | (*(s + 59) << 8) | (*(s + 58))) * 1e-3;
+  data.velD = int((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62))) * 1e-3;
 }
 
-void Ublox::decode(NavPayload_VELNED& data) const
+void Ublox::decode(NavVelnedPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_VELNED)
+  if (parser_->getLatestMsg() != Ublox::NAV_VELNED)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -433,19 +436,19 @@ void Ublox::decode(NavPayload_VELNED& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.velN = ((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-2;
-  data.velE = ((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-2;
-  data.velD = ((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
+  data.velN = int((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-2;
+  data.velE = int((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-2;
+  data.velD = int((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
 }
 
-void Ublox::decode(NavPayload_TIMEGPS& data) const
+void Ublox::decode(NavTimegpsPayload& data) const
 {
   throw;  // TODO
 }
 
-void Ublox::decode(NavPayload_COV& data) const
+void Ublox::decode(NavCovPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_COV)
+  if (parser_->getLatestMsg() != Ublox::NAV_COV)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -478,6 +481,16 @@ void Ublox::decode(NavPayload_COV& data) const
     decodeBinary32((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62)));
   data.velCovDD =
     decodeBinary32((*(s + 69) << 24) | (*(s + 68) << 16) | (*(s + 67) << 8) | (*(s + 66)));
+}
+
+void Ublox::decode(MonHwPayload& data) const
+{
+  throw;  // TODO
+}
+
+void Ublox::decode(MonHw2Payload& data) const
+{
+  throw;  // TODO
 }
 
 bool Ublox::sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size)

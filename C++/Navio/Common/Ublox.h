@@ -3,7 +3,7 @@
 #include <string>
 
 #include "./SPIdev.h"
-#include "./nav_payloads.hpp"
+#include "./ubx_payload.hpp"
 
 #define PACKED __attribute__((__packed__))  // 構造体のメンバ変数がメモリ上で連続する
 
@@ -58,7 +58,7 @@ public:
   uint8_t* getMessage() const;
   const uint32_t& getLength() const;
   const uint32_t& getPosition() const;
-  const uint16_t& getLatestId() const;
+  const uint16_t& getLatestMsg() const;
 
 private:
   UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
@@ -75,7 +75,7 @@ private:
 class Ublox
 {
 private:
-  enum ubx_protocol_bytes
+  enum ubx_protocol_bytes : uint8_t
   {
     PREAMBLE1 = 0xb5,
     PREAMBLE2 = 0x62,
@@ -88,19 +88,22 @@ private:
     ID_CFG_RATE = 0x08,
     ID_CFG_NAV5 = 0x24,
     ID_CFG_GNSS = 0x3E,
+
     ID_NAV_POSLLH = 0x02,
     ID_NAV_STATUS = 0x03,
     ID_NAV_DOP = 0x04,
     ID_NAV_PVT = 0x07,
     ID_NAV_VELNED = 0x12,
     ID_NAV_TIMEGPS = 0x20,
+
     ID_NAV_COV = 0x36,
     ID_MON_HW = 0x09,
+    ID_MON_HW2 = 0x0B,
   };
 
 public:
   // Class + ID
-  enum message_t
+  enum message_t : uint16_t
   {
     NAV_POSLLH = (CLASS_NAV << 8) + ID_NAV_POSLLH,
     NAV_STATUS = (CLASS_NAV << 8) + ID_NAV_STATUS,
@@ -109,9 +112,13 @@ public:
     NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
     NAV_TIMEGPS = (CLASS_NAV << 8) + ID_NAV_TIMEGPS,
     NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
+
+    MON_HW = (CLASS_MON << 8) + ID_MON_HW,
+    MON_HW2 = (CLASS_MON << 8) + ID_MON_HW2,
   };
 
-  enum dynamics_model
+  // UBX-CFG-NAV5, dynModel
+  enum dynamics_model : uint8_t
   {
     PORTABLE = 0,
     STATIONARY = 2,
@@ -131,8 +138,8 @@ public:
   explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
   /* 32.10.18.3 Set message rate */
-  bool enableNavMsg(message_t msg, bool enable);
-  bool enableAllNavMsgs(bool enable);
+  bool enableMsg(message_t msg, bool enable);
+  bool enableAllMsgs(bool enable);
 
   /* 32.10.27.1 Navigation/measurement rate settings */
   bool configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
@@ -150,13 +157,16 @@ public:
 
   uint16_t update();
 
-  void decode(NavPayload_POSLLH& data) const;
-  void decode(NavPayload_STATUS& data) const;
-  void decode(NavPayload_DOP& data) const;
-  void decode(NavPayload_PVT& data) const;
-  void decode(NavPayload_VELNED& data) const;
-  void decode(NavPayload_TIMEGPS& data) const;
-  void decode(NavPayload_COV& data) const;
+  void decode(NavPosllhPayload& data) const;
+  void decode(NavStatusPayload& data) const;
+  void decode(NavDopPayload& data) const;
+  void decode(NavPvtPayload& data) const;
+  void decode(NavVelnedPayload& data) const;
+  void decode(NavTimegpsPayload& data) const;
+  void decode(NavCovPayload& data) const;
+
+  void decode(MonHwPayload& data) const;
+  void decode(MonHw2Payload& data) const;
 
 private:
   struct PACKED UbxHeader
