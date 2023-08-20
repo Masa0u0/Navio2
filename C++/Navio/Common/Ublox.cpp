@@ -518,10 +518,12 @@ bool Ublox::waitForAcknowledge(uint8_t cls, uint8_t id)
         decode(ack);
         if (ack.clsID == cls && ack.msgID == id)
           return true;
+        break;
       case Ublox::ACK_NAK:
         decode(nak);
-        if (ack.clsID == cls && ack.msgID == id)
+        if (nak.clsID == cls && nak.msgID == id)
           return false;
+        break;
       default:
         break;
     }
