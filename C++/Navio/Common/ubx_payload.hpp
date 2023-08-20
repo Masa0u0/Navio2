@@ -78,12 +78,14 @@ struct NavCovPayload
 
 struct AckNakPayload
 {
-  // TODO
+  uint8_t clsID;  // Class ID of the Not-Acknowledged Message
+  uint8_t msgID;  // Message ID of the Not-Acknowledged Message
 };
 
 struct AckAckPayload
 {
-  // TODO
+  uint8_t clsID;  // Class ID of the Acknowledged Message
+  uint8_t msgID;  // Message ID of the Acknowledged Message
 };
 
 struct MonHwPayload

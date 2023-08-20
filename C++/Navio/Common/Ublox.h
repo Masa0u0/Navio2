@@ -12,7 +12,7 @@ static constexpr uint32_t kPreambleOffset = 2;
 static constexpr uint32_t kSpiSpeedHz = 200000;  // Maximum frequency is 5.5MHz
 static constexpr uint32_t kConfigureMessageSize = 11;
 static constexpr uint32_t kMinMaxTrkChForMajorGnss = 4;
-static constexpr uint32_t kWaitForGnssAcknowledgement = 500000;  // [us]
+static constexpr uint32_t kWaitForGnssAck = 1000000;  // [us]
 
 class UBXScanner
 {
@@ -141,6 +141,17 @@ public:
     ELECTRIC_KICK_SCOOTER = 12,
   };
 
+  // UBX-CFG-GNSS, gnssId
+  enum gnss_id : uint8_t
+  {
+    GPS = 0,
+    SBAS = 1,
+    GALILEO = 2,
+    BEIDOU = 3,
+    QZSS = 5,
+    GLONASS = 6,
+  };
+
   explicit Ublox();
   explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
@@ -260,4 +271,7 @@ private:
 
   /* p.171, 32.4 UBX Checksum. */
   CheckSum calculateCheckSum(uint8_t* message, size_t size) const;
+
+  bool configureGnss(uint8_t gnss_id, uint8_t res_track_ch, uint8_t max_track_ch, bool enable);
+  bool waitForAcknowledge(uint8_t cls, uint8_t id);
 };
