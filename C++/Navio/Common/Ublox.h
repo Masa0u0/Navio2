@@ -237,10 +237,10 @@ private:
     uint8_t dgnssTimeout;
     uint8_t cnoThreshNumSVs;
     uint8_t cnoThresh;
-    const uint8_t reserved1[2] = { 0x00, 0x00 };
+    uint8_t reserved1[2];
     uint16_t staticHoldMaxDist;
     uint8_t utcStandard;
-    const uint8_t reserved2[5] = { 0x00, 0x00, 0x00, 0x00, 0x00 };
+    uint8_t reserved2[5];
   };
 
   struct PACKED CfgGnssBlock
@@ -248,7 +248,7 @@ private:
     uint8_t gnssId;
     uint8_t resTrkCh;
     uint8_t maxTrkCh;
-    const uint8_t reserved1 = 0x00;
+    uint8_t reserved1;
     uint32_t flags;
   };
 
