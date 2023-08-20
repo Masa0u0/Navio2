@@ -190,6 +190,9 @@ bool Ublox::enableAllMsgs(bool enable)
   ok &= enableMsg(NAV_TIMEGPS, enable);
   ok &= enableMsg(NAV_COV, enable);
 
+  ok &= enableMsg(ACK_NAK, enable);
+  ok &= enableMsg(ACK_ACK, enable);
+
   ok &= enableMsg(MON_HW, enable);
   ok &= enableMsg(MON_HW2, enable);
 
@@ -481,6 +484,16 @@ void Ublox::decode(NavCovPayload& data) const
     decodeBinary32((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62)));
   data.velCovDD =
     decodeBinary32((*(s + 69) << 24) | (*(s + 68) << 16) | (*(s + 67) << 8) | (*(s + 66)));
+}
+
+void Ublox::decode(AckNakPayload& data) const
+{
+  throw;  // TODO
+}
+
+void Ublox::decode(AckAckPayload& data) const
+{
+  throw;  // TODO
 }
 
 void Ublox::decode(MonHwPayload& data) const

@@ -76,6 +76,16 @@ struct NavCovPayload
   friend std::ostream& operator<<(std::ostream& os, const NavCovPayload& arg);
 };
 
+struct AckNakPayload
+{
+  // TODO
+};
+
+struct AckAckPayload
+{
+  // TODO
+};
+
 struct MonHwPayload
 {
   // TODO

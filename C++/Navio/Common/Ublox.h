@@ -80,14 +80,10 @@ private:
     PREAMBLE1 = 0xb5,
     PREAMBLE2 = 0x62,
 
-    CLASS_CFG = 0x06,
     CLASS_NAV = 0x01,
+    CLASS_ACK = 0x05,
+    CLASS_CFG = 0x06,
     CLASS_MON = 0x0A,
-
-    ID_CFG_MSG = 0x01,
-    ID_CFG_RATE = 0x08,
-    ID_CFG_NAV5 = 0x24,
-    ID_CFG_GNSS = 0x3E,
 
     ID_NAV_POSLLH = 0x02,
     ID_NAV_STATUS = 0x03,
@@ -95,8 +91,16 @@ private:
     ID_NAV_PVT = 0x07,
     ID_NAV_VELNED = 0x12,
     ID_NAV_TIMEGPS = 0x20,
-
     ID_NAV_COV = 0x36,
+
+    ID_ACK_NAK = 0x00,
+    ID_ACK_ACK = 0x01,
+
+    ID_CFG_MSG = 0x01,
+    ID_CFG_RATE = 0x08,
+    ID_CFG_NAV5 = 0x24,
+    ID_CFG_GNSS = 0x3E,
+
     ID_MON_HW = 0x09,
     ID_MON_HW2 = 0x0B,
   };
@@ -112,6 +116,9 @@ public:
     NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
     NAV_TIMEGPS = (CLASS_NAV << 8) + ID_NAV_TIMEGPS,
     NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
+
+    ACK_NAK = (CLASS_ACK << 8) + ID_ACK_NAK,
+    ACK_ACK = (CLASS_ACK << 8) + ID_ACK_ACK,
 
     MON_HW = (CLASS_MON << 8) + ID_MON_HW,
     MON_HW2 = (CLASS_MON << 8) + ID_MON_HW2,
@@ -164,6 +171,9 @@ public:
   void decode(NavVelnedPayload& data) const;
   void decode(NavTimegpsPayload& data) const;
   void decode(NavCovPayload& data) const;
+
+  void decode(AckNakPayload& data) const;
+  void decode(AckAckPayload& data) const;
 
   void decode(MonHwPayload& data) const;
   void decode(MonHw2Payload& data) const;
