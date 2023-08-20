@@ -494,7 +494,7 @@ bool Ublox::configureGnss(uint8_t gnss_id, uint8_t res_track_ch, uint8_t max_tra
   cfg_gnss.block.gnssId = gnss_id;
   cfg_gnss.block.resTrkCh = res_track_ch;
   cfg_gnss.block.maxTrkCh = max_track_ch;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;  // M8シリーズはL1A/Cのみ受信できる (1.5節)
+  cfg_gnss.block.flags = enable ? (0x01 << 8) | 0x01 : 0;  // M8シリーズはL1A/Cのみ受信可 (1.5節)
 
   if (!sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss)))
   {
