@@ -184,8 +184,10 @@ bool Ublox::enableAllNavMsgs(bool enable)
 
   ok &= enableNavMsg(NAV_POSLLH, enable);
   ok &= enableNavMsg(NAV_STATUS, enable);
+  ok &= enableNavMsg(NAV_DOP, enable);
   ok &= enableNavMsg(NAV_PVT, enable);
   ok &= enableNavMsg(NAV_VELNED, enable);
+  ok &= enableNavMsg(NAV_TIMEGPS, enable);
   ok &= enableNavMsg(NAV_COV, enable);
 
   return ok;
@@ -389,6 +391,11 @@ void Ublox::decode(NavPayload_STATUS& data) const
   data.flags = *(s + 11);
 }
 
+void Ublox::decode(NavPayload_DOP& data) const
+{
+  throw;  // TODO
+}
+
 void Ublox::decode(NavPayload_PVT& data) const
 {
   if (parser_->getLatestId() != Ublox::NAV_PVT)
@@ -429,6 +436,11 @@ void Ublox::decode(NavPayload_VELNED& data) const
   data.velN = ((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-2;
   data.velE = ((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-2;
   data.velD = ((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
+}
+
+void Ublox::decode(NavPayload_TIMEGPS& data) const
+{
+  throw;  // TODO
 }
 
 void Ublox::decode(NavPayload_COV& data) const

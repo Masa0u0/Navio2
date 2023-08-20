@@ -82,6 +82,7 @@ private:
 
     CLASS_CFG = 0x06,
     CLASS_NAV = 0x01,
+    CLASS_MON = 0x0A,
 
     ID_CFG_MSG = 0x01,
     ID_CFG_RATE = 0x08,
@@ -89,9 +90,12 @@ private:
     ID_CFG_GNSS = 0x3E,
     ID_NAV_POSLLH = 0x02,
     ID_NAV_STATUS = 0x03,
+    ID_NAV_DOP = 0x04,
     ID_NAV_PVT = 0x07,
     ID_NAV_VELNED = 0x12,
+    ID_NAV_TIMEGPS = 0x20,
     ID_NAV_COV = 0x36,
+    ID_MON_HW = 0x09,
   };
 
 public:
@@ -100,8 +104,10 @@ public:
   {
     NAV_POSLLH = (CLASS_NAV << 8) + ID_NAV_POSLLH,
     NAV_STATUS = (CLASS_NAV << 8) + ID_NAV_STATUS,
+    NAV_DOP = (CLASS_NAV << 8) + ID_NAV_DOP,
     NAV_PVT = (CLASS_NAV << 8) + ID_NAV_PVT,
     NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
+    NAV_TIMEGPS = (CLASS_NAV << 8) + ID_NAV_TIMEGPS,
     NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
   };
 
@@ -146,8 +152,10 @@ public:
 
   void decode(NavPayload_POSLLH& data) const;
   void decode(NavPayload_STATUS& data) const;
+  void decode(NavPayload_DOP& data) const;
   void decode(NavPayload_PVT& data) const;
   void decode(NavPayload_VELNED& data) const;
+  void decode(NavPayload_TIMEGPS& data) const;
   void decode(NavPayload_COV& data) const;
 
 private:

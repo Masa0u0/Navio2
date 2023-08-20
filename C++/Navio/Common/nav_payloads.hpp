@@ -20,6 +20,11 @@ struct NavPayload_STATUS
   friend std::ostream& operator<<(std::ostream& os, const NavPayload_STATUS& arg);
 };
 
+struct NavPayload_DOP
+{
+  // TODO
+};
+
 struct NavPayload_PVT
 {
   uint16_t year;  // Year (UTC)
@@ -46,6 +51,11 @@ struct NavPayload_VELNED
   float velD;  // Down velocity component [m/s]
 
   friend std::ostream& operator<<(std::ostream& os, const NavPayload_VELNED& arg);
+};
+
+struct NavPayload_TIMEGPS
+{
+  // TODO
 };
 
 struct NavPayload_COV
