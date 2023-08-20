@@ -487,6 +487,7 @@ bool Ublox::configureGnss(uint8_t gnss_id, uint8_t res_track_ch, uint8_t max_tra
   CfgGnss cfg_gnss;
   memset(&cfg_gnss, 0, sizeof(CfgGnss));
 
+  cfg_gnss.msgVer = 0x00;
   cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
   cfg_gnss.numConfigBlocks = 1;
 
