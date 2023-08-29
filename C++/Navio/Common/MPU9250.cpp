@@ -1,7 +1,9 @@
+#include <cmath>
+
 #include "MPU9250.h"
 
 #define G_SI 9.80665
-#define PI 3.14159
+#define DEG2RAD (M_PI / 180.)
 
 //-----------------------------------------------------------------------------------------------
 
@@ -47,7 +49,7 @@ void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   for (i = 0; i < Bytes; i++)
     ReadBuf[i] = rx[i + 1];
 
-  usleep(50);
+  // usleep(50);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -334,9 +336,9 @@ void MPU9250::update()
   {
     bit_data[i - 4] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
-  _gx = (PI / 180) * bit_data[0] / gyro_divider;
-  _gy = (PI / 180) * bit_data[1] / gyro_divider;
-  _gz = (PI / 180) * bit_data[2] / gyro_divider;
+  _gx = DEG2RAD * bit_data[0] / gyro_divider;
+  _gy = DEG2RAD * bit_data[1] / gyro_divider;
+  _gz = DEG2RAD * bit_data[2] / gyro_divider;
 
   // Get Magnetometer value
   for (i = 7; i < 10; i++)

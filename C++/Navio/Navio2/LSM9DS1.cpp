@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "./LSM9DS1.h"
 
 #define DEVICE_ACC_GYRO "/dev/spidev0.3"
@@ -7,7 +9,7 @@
 #define MULTIPLE_READ 0x40
 
 #define G_SI 9.80665
-#define PI 3.14159
+#define DEG2RAD (M_PI / 180.)
 
 LSM9DS1::LSM9DS1() : spi_dev_imu_(DEVICE_ACC_GYRO), spi_dev_mag_(DEVICE_MAGNETOMETER)
 {
@@ -43,7 +45,7 @@ void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
 
-  usleep(50);
+  // usleep(50);
 }
 
 void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
@@ -58,7 +60,7 @@ void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
 
-  usleep(50);
+  // usleep(50);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -133,9 +135,9 @@ void LSM9DS1::update()
   {
     bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
   }
-  _gx = (PI / 180) * ((float)bit_data[0] * gyro_scale);
-  _gy = (PI / 180) * ((float)bit_data[1] * gyro_scale);
-  _gz = (PI / 180) * ((float)bit_data[2] * gyro_scale);
+  _gx = DEG2RAD * ((float)bit_data[0] * gyro_scale);
+  _gy = DEG2RAD * ((float)bit_data[1] * gyro_scale);
+  _gz = DEG2RAD * ((float)bit_data[2] * gyro_scale);
 
   // Read magnetometer
   ReadRegsMag(LSM9DS1M_OUT_X_L_M, &response[0], 6);
@@ -143,9 +145,9 @@ void LSM9DS1::update()
   {
     bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
   }
-  _mx = 100.0 * ((float)bit_data[0] * mag_scale);
-  _my = 100.0 * ((float)bit_data[1] * mag_scale);
-  _mz = 100.0 * ((float)bit_data[2] * mag_scale);
+  _mx = 100. * ((float)bit_data[0] * mag_scale);
+  _my = 100. * ((float)bit_data[1] * mag_scale);
+  _mz = 100. * ((float)bit_data[2] * mag_scale);
 
   // Change rotation of LSM9DS1 like in MPU-9250
   rotate();
