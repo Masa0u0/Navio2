@@ -114,8 +114,8 @@ void LSM9DS1::update()
   int16_t bit_data[3];
 
   // Read temperature
-  ReadRegsImu(LSM9DS1XG_OUT_TEMP_L, &response[0], 2);
-  temperature = (float)(((int16_t)response[1] << 8) | response[0]) / 256. + 25.;
+  // ReadRegsImu(LSM9DS1XG_OUT_TEMP_L, &response[0], 2);
+  // temperature = (float)(((int16_t)response[1] << 8) | response[0]) / 256. + 25.;
 
   // Read accelerometer
   ReadRegsImu(LSM9DS1XG_OUT_X_L_XL, &response[0], 6);
