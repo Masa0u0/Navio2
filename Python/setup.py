@@ -9,5 +9,5 @@ setup(
     author="Georgii Staroselskii",
     author_email="georgii.staroselskii@emlid.com",
     url="https://github.com/emlid/navio2",
-    packages=['navio2']
+    packages=["navio2"],
 )

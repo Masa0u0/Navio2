@@ -3,12 +3,11 @@ import navio.ublox
 
 
 if __name__ == "__main__":
-
     ubl = navio.ublox.UBlox("spi:0.0", baudrate=5000000, timeout=2)
 
     ubl.configure_poll_port()
     ubl.configure_poll(navio.ublox.CLASS_CFG, navio.ublox.MSG_CFG_USB)
-    #ubl.configure_poll(navio.ublox.CLASS_MON, navio.ublox.MSG_MON_HW)
+    # ubl.configure_poll(navio.ublox.CLASS_MON, navio.ublox.MSG_MON_HW)
 
     ubl.configure_port(port=navio.ublox.PORT_SERIAL1, inMask=1, outMask=0)
     ubl.configure_port(port=navio.ublox.PORT_USB, inMask=1, outMask=1)
@@ -37,7 +36,7 @@ if __name__ == "__main__":
     ubl.configure_message_rate(navio.ublox.CLASS_RXM, navio.ublox.MSG_RXM_EPH, 1)
     ubl.configure_message_rate(navio.ublox.CLASS_NAV, navio.ublox.MSG_NAV_TIMEGPS, 5)
     ubl.configure_message_rate(navio.ublox.CLASS_NAV, navio.ublox.MSG_NAV_CLOCK, 5)
-    #ubl.configure_message_rate(navio.ublox.CLASS_NAV, navio.ublox.MSG_NAV_DGPS, 5)
+    # ubl.configure_message_rate(navio.ublox.CLASS_NAV, navio.ublox.MSG_NAV_DGPS, 5)
 
     while True:
         msg = ubl.receive_message()
@@ -48,7 +47,7 @@ if __name__ == "__main__":
                 continue
             print(empty)
             break
-        #print(msg.name())
+        # print(msg.name())
         if msg.name() == "NAV_POSLLH":
             outstr = str(msg).split(",")[1:]
             outstr = "".join(outstr)
@@ -57,4 +56,4 @@ if __name__ == "__main__":
             outstr = str(msg).split(",")[1:2]
             outstr = "".join(outstr)
             print(outstr)
-        #print(str(msg))
+        # print(str(msg))
