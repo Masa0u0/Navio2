@@ -198,6 +198,7 @@ bool Ublox::enableAllMsgs(bool enable)
   ok &= enableMsg(NAV_PVT, enable);
   ok &= enableMsg(NAV_VELNED, enable);
   ok &= enableMsg(NAV_TIMEGPS, enable);
+  ok &= enableMsg(NAV_TIMEUTC, enable);
   ok &= enableMsg(NAV_COV, enable);
 
   ok &= enableMsg(MON_HW, enable);
@@ -309,7 +310,9 @@ void Ublox::decode(NavStatusPayload& data) const
   const auto s = msg + pos;
 
   data.gpsFix = uint8_t(*(s + 10));
-  data.flags = uint8_t(*(s + 11));
+
+  const auto flags = uint8_t(*(s + 11));
+  data.gpsFixOk = (flags >> 0) & 1;
 }
 
 void Ublox::decode(NavDopPayload& data) const
@@ -334,6 +337,20 @@ void Ublox::decode(NavPvtPayload& data) const
   data.hour = uint8_t(*(s + 14));
   data.min = uint8_t(*(s + 15));
   data.sec = uint8_t(*(s + 16));
+
+  const auto valid = uint8_t(*(s + 17));
+  data.validDate = (valid >> 0) & 1;
+  data.validTime = (valid >> 1) & 1;
+  data.fullyResolved = (valid >> 2) & 1;
+  data.validMag = (valid >> 3) & 1;
+
+  data.tAcc = uint32_t((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18)));
+  data.nano = int((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22)));
+
+  data.fixType = uint8_t(*(s + 26));
+
+  const auto flags = uint8_t(*(s + 27));
+  data.gnssFixOk = (flags >> 0) & 1;
 
   data.lon = int((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;
   data.lat = int((*(s + 37) << 24) | (*(s + 36) << 16) | (*(s + 35) << 8) | (*(s + 34))) * 1e-7;
@@ -362,6 +379,30 @@ void Ublox::decode(NavVelnedPayload& data) const
 void Ublox::decode(NavTimegpsPayload& data) const
 {
   throw;  // TODO
+}
+
+void Ublox::decode(NavTimeutcPayload& data) const
+{
+  if (parser_->getLatestMsg() != Ublox::NAV_TIMEUTC)
+  {
+    throw runtime_error("Message type mismatch.");
+  }
+
+  const auto msg = parser_->getMessage();
+  const auto pos = parser_->getPosition() - parser_->getLength();
+  const auto s = msg + pos;
+
+  data.tAcc = uint32_t((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10)));
+  data.nano = int((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14)));
+  data.year = uint16_t((*(s + 19) << 8) | (*(s + 18)));
+  data.month = uint8_t(*(s + 20));
+  data.day = uint8_t(*(s + 21));
+  data.hour = uint8_t(*(s + 22));
+  data.min = uint8_t(*(s + 23));
+  data.sec = uint8_t(*(s + 24));
+
+  const auto valid = uint8_t(*(s + 25));
+  data.validUTC = (valid >> 2) & 1;
 }
 
 void Ublox::decode(NavCovPayload& data) const

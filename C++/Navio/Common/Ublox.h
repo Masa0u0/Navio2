@@ -91,6 +91,7 @@ private:
     ID_NAV_PVT = 0x07,
     ID_NAV_VELNED = 0x12,
     ID_NAV_TIMEGPS = 0x20,
+    ID_NAV_TIMEUTC = 0x21,
     ID_NAV_COV = 0x36,
 
     ID_ACK_NAK = 0x00,
@@ -115,6 +116,7 @@ public:
     NAV_PVT = (CLASS_NAV << 8) + ID_NAV_PVT,
     NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
     NAV_TIMEGPS = (CLASS_NAV << 8) + ID_NAV_TIMEGPS,
+    NAV_TIMEUTC = (CLASS_NAV << 8) + ID_NAV_TIMEUTC,
     NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
 
     ACK_NAK = (CLASS_ACK << 8) + ID_ACK_NAK,
@@ -124,7 +126,18 @@ public:
     MON_HW2 = (CLASS_MON << 8) + ID_MON_HW2,
   };
 
-  // UBX-CFG-NAV5, dynModel
+  // gpsFix (UBX-STATUS), fixType (UBX-PVT)
+  enum gps_fix : uint8_t
+  {
+    NO_FIX = 0,
+    DEAD_RECHONING_ONLY = 1,
+    FIX_2D = 2,
+    FIX_3D = 3,
+    GPS_DEAD_RECHONING_COMBINED = 4,
+    TIME_ONLY_FIX = 5,
+  };
+
+  // dynModel (UBX-CFG-NAV5)
   enum dynamics_model : uint8_t
   {
     PORTABLE = 0,
@@ -141,7 +154,7 @@ public:
     ELECTRIC_KICK_SCOOTER = 12,
   };
 
-  // UBX-CFG-GNSS, gnssId
+  // gnssId (UBX-CFG-GNSS)
   enum gnss_id : uint8_t
   {
     GPS = 0,
@@ -181,6 +194,7 @@ public:
   void decode(NavPvtPayload& data) const;
   void decode(NavVelnedPayload& data) const;
   void decode(NavTimegpsPayload& data) const;
+  void decode(NavTimeutcPayload& data) const;
   void decode(NavCovPayload& data) const;
 
   void decode(AckNakPayload& data) const;

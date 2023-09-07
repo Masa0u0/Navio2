@@ -13,7 +13,7 @@ ostream& operator<<(ostream& os, const NavPosllhPayload& arg)
 ostream& operator<<(ostream& os, const NavStatusPayload& arg)
 {
   os << "GPSfix Type: " << static_cast<int>(arg.gpsFix) << endl;
-  os << "Navigation Status Flags: " << static_cast<int>(arg.flags) << endl;
+  os << "Position and velocity valid and within DOP and ACC Masks: " << arg.gpsFixOk << endl;
   return os;
 }
 
@@ -25,6 +25,18 @@ ostream& operator<<(ostream& os, const NavPvtPayload& arg)
   os << "Hour of day, range 0..23 (UTC): " << static_cast<int>(arg.hour) << endl;
   os << "Minute of hour, range 0..59 (UTC): " << static_cast<int>(arg.min) << endl;
   os << "Seconds of minute, range 0..60 (UTC): " << static_cast<int>(arg.sec) << endl;
+
+  os << "Valid UTC Date: " << arg.validDate << endl;
+  os << "Valid UTC time of day: " << arg.validTime << endl;
+  os << "UTC time of day has been fully resolved: " << arg.fullyResolved << endl;
+  os << "Valid magnetic declination: " << arg.validMag << endl;
+
+  os << "Time accuracy estimate (UTC): " << arg.tAcc << "[ns]" << endl;
+  os << "Fraction of second, range -1e9 .. 1e9 (UTC): " << arg.nano << "[ns]" << endl;
+
+  os << "GNSSfix Type: " << static_cast<int>(arg.fixType) << endl;
+
+  os << "Valid fix (i.e within DOP & accuracy masks): " << arg.gnssFixOk << endl;
 
   os << "Longitude: " << arg.lon << "[deg]" << endl;
   os << "Latitude: " << arg.lat << "[deg]" << endl;

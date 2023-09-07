@@ -14,8 +14,8 @@ struct NavPosllhPayload
 
 struct NavStatusPayload
 {
-  uint8_t gpsFix;  // GPSfix Type, this value does not qualify a fix as valid and within the limits.
-  uint8_t flags;   // Navigation Status Flags
+  uint8_t gpsFix;  // GPSfix Type, this value does not qualify a fix as valid and within the limits
+  bool gpsFixOk;   // Position and velocity valid and within DOP and ACC Masks
 
   friend std::ostream& operator<<(std::ostream& os, const NavStatusPayload& arg);
 };
@@ -27,12 +27,24 @@ struct NavDopPayload
 
 struct NavPvtPayload
 {
-  uint16_t year;  // Year (UTC)
-  uint8_t month;  // Month, range 1..12 (UTC)
-  uint8_t day;    // Day of month, range 1..31 (UTC)
-  uint8_t hour;   // Hour of day, range 0..23 (UTC)
-  uint8_t min;    // Minute of hour, range 0..59 (UTC)
-  uint8_t sec;    // Seconds of minute, range 0..60 (UTC)
+  uint16_t year;  // Year (UTC) [y]
+  uint8_t month;  // Month, range 1..12 (UTC) [month]
+  uint8_t day;    // Day of month, range 1..31 (UTC) [d]
+  uint8_t hour;   // Hour of day, range 0..23 (UTC) [h]
+  uint8_t min;    // Minute of hour, range 0..59 (UTC) [min]
+  uint8_t sec;    // Seconds of minute, range 0..60 (UTC) [s]
+
+  bool validDate;      // Valid UTC Date
+  bool validTime;      // Valid UTC time of day
+  bool fullyResolved;  // UTC time of day has been fully resolved
+  bool validMag;       // Valid magnetic declination
+
+  uint32_t tAcc;  // Time accuracy estimate (UTC) [ns]
+  int nano;       // Fraction of second, range -1e9 .. 1e9 (UTC) [ns]
+
+  uint8_t fixType;  // GNSSfix Type
+
+  bool gnssFixOk;  // Valid fix (i.e within DOP & accuracy masks)
 
   double lon;   // Longitude [deg]
   double lat;   // Latitude [deg]
@@ -56,6 +68,20 @@ struct NavVelnedPayload
 struct NavTimegpsPayload
 {
   // TODO
+};
+
+struct NavTimeutcPayload
+{
+  uint32_t tAcc;  // Time accuracy estimate (UTC) [ns]
+  int nano;       // Fraction of second, range -1e9 .. 1e9 (UTC) [ns]
+  uint16_t year;  // Year (UTC) [y]
+  uint8_t month;  // Month, range 1..12 (UTC) [month]
+  uint8_t day;    // Day of month, range 1..31 (UTC) [d]
+  uint8_t hour;   // Hour of day, range 0..23 (UTC) [h]
+  uint8_t min;    // Minute of hour, range 0..59 (UTC) [min]
+  uint8_t sec;    // Seconds of minute, range 0..60 (UTC) [s]
+
+  bool validUTC;  // Valid UTC Time
 };
 
 struct NavCovPayload
