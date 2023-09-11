@@ -41,10 +41,11 @@ void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_imu_.transfer(tx, rx, Bytes + 1);
-  // usleep(50);
 
   for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
+
+  // usleep(50);
 }
 
 void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
@@ -55,10 +56,11 @@ void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   tx[0] = ReadAddr | READ_FLAG | MULTIPLE_READ;
 
   spi_dev_mag_.transfer(tx, rx, Bytes + 1);
-  // usleep(50);
 
   for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
+
+  // usleep(50);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -102,9 +104,12 @@ void LSM9DS1::initialize()
   WriteReg(spi_dev_mag_, LSM9DS1M_CTRL_REG5_M, 0x00);
   usleep(200);
 
-  set_gyro_scale(BITS_FS_G_2000DPS);
-  set_acc_scale(BITS_FS_XL_16G);
-  set_mag_scale(BITS_FS_M_16Gs);
+  // set_gyro_scale(BITS_FS_G_2000DPS);
+  // set_acc_scale(BITS_FS_XL_16G);
+  // set_mag_scale(BITS_FS_M_16Gs);
+  set_gyro_scale(BITS_FS_G_500DPS);
+  set_acc_scale(BITS_FS_XL_4G);
+  set_mag_scale(BITS_FS_M_4Gs);
 }
 
 void LSM9DS1::update()

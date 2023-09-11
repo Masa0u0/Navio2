@@ -131,8 +131,10 @@ void MPU9250::initialize()
 
   };
 
-  set_acc_scale(BITS_FS_16G);
-  set_gyro_scale(BITS_FS_2000DPS);
+  // set_acc_scale(BITS_FS_16G);
+  // set_gyro_scale(BITS_FS_2000DPS);
+  set_acc_scale(BITS_FS_4G);
+  set_gyro_scale(BITS_FS_500DPS);
 
   for (i = 0; i < MPU_InitRegNum; i++)
   {
