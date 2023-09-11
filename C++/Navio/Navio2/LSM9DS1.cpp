@@ -74,10 +74,7 @@ bool LSM9DS1::probe()
   uint8_t responseXG, responseM;
   responseXG = ReadReg(spi_dev_imu_, LSM9DS1XG_WHO_AM_I);
   responseM = ReadReg(spi_dev_mag_, LSM9DS1M_WHO_AM_I);
-  if (responseXG == WHO_AM_I_ACC_GYRO && responseM == WHO_AM_I_MAG)
-    return true;
-  else
-    return false;
+  return responseXG == WHO_AM_I_ACC_GYRO && responseM == WHO_AM_I_MAG;
 }
 
 void LSM9DS1::initialize()
