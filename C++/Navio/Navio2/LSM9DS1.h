@@ -8,9 +8,9 @@ class LSM9DS1 : public InertialSensor
 public:
   explicit LSM9DS1();
 
-  bool initialize();
-  bool probe();
-  void update();
+  void initialize() override;
+  bool probe() override;
+  void update() override;
 
 private:
   uint32_t WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData);
@@ -27,9 +27,9 @@ private:
   SPIdev spi_dev_imu_;
   SPIdev spi_dev_mag_;
 
-  float gyro_scale;
-  float acc_scale;
-  float mag_scale;
+  float gyro_scale_;
+  float acc_scale_;
+  float mag_scale_;
 };
 
 // who am I values

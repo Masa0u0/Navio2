@@ -45,11 +45,10 @@ void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_.transfer(tx, rx, Bytes + 1);
+  // usleep(50);
 
   for (i = 0; i < Bytes; i++)
     ReadBuf[i] = rx[i + 1];
-
-  // usleep(50);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -97,7 +96,7 @@ returns 1 if an error occurred
 
 #define MPU_InitRegNum 16
 
-bool MPU9250::initialize()
+void MPU9250::initialize()
 {
   uint8_t i = 0;
   uint8_t MPU_Init_Data[MPU_InitRegNum][2] = {
@@ -142,8 +141,8 @@ bool MPU9250::initialize()
   }
 
   calib_mag();
-  return 0;
 }
+
 /*-----------------------------------------------------------------------------------------------
                                 ACCELEROMETER SCALE
 usage: call this function at startup, after initialization, to set the right range for the

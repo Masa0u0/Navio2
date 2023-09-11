@@ -112,6 +112,7 @@ int main(int argc, char* argv[])
     printf("Gyr: %+8.3f %+8.3f %+8.3f  ", gx, gy, gz);
     printf("Mag: %+7.3f %+7.3f %+7.3f\n", mx, my, mz);
 
-    usleep(500000);
+    // usleep(500000);
+    usleep(5000);
   }
 }

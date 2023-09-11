@@ -41,11 +41,10 @@ void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_imu_.transfer(tx, rx, Bytes + 1);
+  // usleep(50);
 
   for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
-
-  // usleep(50);
 }
 
 void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
@@ -56,11 +55,10 @@ void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   tx[0] = ReadAddr | READ_FLAG | MULTIPLE_READ;
 
   spi_dev_mag_.transfer(tx, rx, Bytes + 1);
+  // usleep(50);
 
   for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
-
-  // usleep(50);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -80,7 +78,7 @@ bool LSM9DS1::probe()
     return false;
 }
 
-bool LSM9DS1::initialize()
+void LSM9DS1::initialize()
 {
   //--------Accelerometer and Gyroscope---------
   // enable the 3-axes of the gyroscope
@@ -107,7 +105,6 @@ bool LSM9DS1::initialize()
   set_gyro_scale(BITS_FS_G_2000DPS);
   set_acc_scale(BITS_FS_XL_16G);
   set_mag_scale(BITS_FS_M_16Gs);
-  return true;
 }
 
 void LSM9DS1::update()
@@ -125,9 +122,9 @@ void LSM9DS1::update()
   {
     bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
   }
-  _ax = G_SI * ((float)bit_data[0] * acc_scale);
-  _ay = G_SI * ((float)bit_data[1] * acc_scale);
-  _az = G_SI * ((float)bit_data[2] * acc_scale);
+  _ax = G_SI * ((float)bit_data[0] * acc_scale_);
+  _ay = G_SI * ((float)bit_data[1] * acc_scale_);
+  _az = G_SI * ((float)bit_data[2] * acc_scale_);
 
   // Read gyroscope
   ReadRegsImu(LSM9DS1XG_OUT_X_L_G, &response[0], 6);
@@ -135,9 +132,9 @@ void LSM9DS1::update()
   {
     bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
   }
-  _gx = DEG2RAD * ((float)bit_data[0] * gyro_scale);
-  _gy = DEG2RAD * ((float)bit_data[1] * gyro_scale);
-  _gz = DEG2RAD * ((float)bit_data[2] * gyro_scale);
+  _gx = DEG2RAD * ((float)bit_data[0] * gyro_scale_);
+  _gy = DEG2RAD * ((float)bit_data[1] * gyro_scale_);
+  _gz = DEG2RAD * ((float)bit_data[2] * gyro_scale_);
 
   // Read magnetometer
   ReadRegsMag(LSM9DS1M_OUT_X_L_M, &response[0], 6);
@@ -145,9 +142,9 @@ void LSM9DS1::update()
   {
     bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
   }
-  _mx = 100. * ((float)bit_data[0] * mag_scale);
-  _my = 100. * ((float)bit_data[1] * mag_scale);
-  _mz = 100. * ((float)bit_data[2] * mag_scale);
+  _mx = 100. * ((float)bit_data[0] * mag_scale_);
+  _my = 100. * ((float)bit_data[1] * mag_scale_);
+  _mz = 100. * ((float)bit_data[2] * mag_scale_);
 
   // Change rotation of LSM9DS1 like in MPU-9250
   rotate();
@@ -177,13 +174,13 @@ void LSM9DS1::set_gyro_scale(int scale)
   switch (scale)
   {
     case BITS_FS_G_245DPS:
-      gyro_scale = 0.00875;
+      gyro_scale_ = 0.00875;
       break;
     case BITS_FS_G_500DPS:
-      gyro_scale = 0.0175;
+      gyro_scale_ = 0.0175;
       break;
     case BITS_FS_G_2000DPS:
-      gyro_scale = 0.07;
+      gyro_scale_ = 0.07;
       break;
   }
 }
@@ -196,16 +193,16 @@ void LSM9DS1::set_acc_scale(int scale)
   switch (scale)
   {
     case BITS_FS_XL_2G:
-      acc_scale = 0.000061;
+      acc_scale_ = 0.000061;
       break;
     case BITS_FS_XL_4G:
-      acc_scale = 0.000122;
+      acc_scale_ = 0.000122;
       break;
     case BITS_FS_XL_8G:
-      acc_scale = 0.000244;
+      acc_scale_ = 0.000244;
       break;
     case BITS_FS_XL_16G:
-      acc_scale = 0.000732;
+      acc_scale_ = 0.000732;
       break;
   }
 }
@@ -218,16 +215,16 @@ void LSM9DS1::set_mag_scale(int scale)
   switch (scale)
   {
     case BITS_FS_M_4Gs:
-      mag_scale = 0.00014;
+      mag_scale_ = 0.00014;
       break;
     case BITS_FS_M_8Gs:
-      mag_scale = 0.00029;
+      mag_scale_ = 0.00029;
       break;
     case BITS_FS_M_12Gs:
-      mag_scale = 0.00043;
+      mag_scale_ = 0.00043;
       break;
     case BITS_FS_M_16Gs:
-      mag_scale = 0.00058;
+      mag_scale_ = 0.00058;
       break;
   }
 }

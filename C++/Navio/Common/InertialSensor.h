@@ -3,7 +3,7 @@
 class InertialSensor
 {
 public:
-  virtual bool initialize() = 0;
+  virtual void initialize() = 0;
   virtual bool probe() = 0;
   virtual void update() = 0;
 
@@ -11,18 +11,21 @@ public:
   {
     return temperature;
   };
+
   void read_accelerometer(float* ax, float* ay, float* az)
   {
     *ax = _ax;
     *ay = _ay;
     *az = _az;
   };
+
   void read_gyroscope(float* gx, float* gy, float* gz)
   {
     *gx = _gx;
     *gy = _gy;
     *gz = _gz;
   };
+
   void read_magnetometer(float* mx, float* my, float* mz)
   {
     *mx = _mx;

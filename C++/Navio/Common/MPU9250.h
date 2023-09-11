@@ -8,9 +8,9 @@ class MPU9250 : public InertialSensor
 public:
   explicit MPU9250();
 
-  bool initialize();
-  bool probe();
-  void update();
+  void initialize() override;
+  bool probe() override;
+  void update() override;
 
 private:
   uint32_t WriteReg(uint8_t WriteAddr, uint8_t WriteData);
