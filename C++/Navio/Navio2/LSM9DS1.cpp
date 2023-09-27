@@ -123,7 +123,7 @@ void LSM9DS1::initializeGyroscope()
   writeReg(spi_dev_imu_, XG_CTRL_REG4, BITS_XEN_G | BITS_YEN_G | BITS_ZEN_G);
 
   // Configure gyroscope
-  writeReg(spi_dev_imu_, XG_CTRL_REG1_G, BITS_ODR_G_952HZ | scale | BITS_BW_G_1);
+  writeReg(spi_dev_imu_, XG_CTRL_REG1_G, BITS_ODR_G_952HZ | scale | BITS_BW_G_0);
 
   // Set scale
   setGyroScale(scale);
@@ -142,7 +142,7 @@ void LSM9DS1::initializeAccelerometer()
   // Configure accelerometer
   writeReg(
     spi_dev_imu_, XG_CTRL_REG6_XL, BITS_ODR_XL_952HZ | scale | BITS_BW_SCAL_ODR | BITS_BW_XL_50HZ);
-  // writeReg(spi_dev_imu_, XG_CTRL_REG7_XL, BITS_HR | BITS_DCF_50);  // HR mode (Digital LPF)
+  writeReg(spi_dev_imu_, XG_CTRL_REG7_XL, BITS_HR | BITS_DCF_50);  // HR mode (Digital LPF)
 
   // Set scale
   setAccScale(scale);
