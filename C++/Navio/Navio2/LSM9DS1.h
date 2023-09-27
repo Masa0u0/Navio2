@@ -12,6 +12,11 @@ public:
   bool probe() override;
   void update() override;
 
+  void updateTemperature();
+  void updateAccelerometer();
+  void updateGyroscope();
+  void updateMagnetometer();
+
 private:
   uint32_t WriteReg(SPIdev& spi_dev, uint8_t WriteAddr, uint8_t WriteData);
   uint32_t ReadReg(SPIdev& spi_dev, uint8_t ReadAddr);
@@ -22,14 +27,17 @@ private:
   void set_acc_scale(int scale);
   void set_mag_scale(int scale);
 
-  void rotate();
-
   SPIdev spi_dev_imu_;
   SPIdev spi_dev_mag_;
 
   float gyro_scale_;
   float acc_scale_;
   float mag_scale_;
+
+  uint8_t tx_[255] = { 0 };
+  uint8_t rx_[255] = { 0 };
+  uint8_t response_[6];
+  int16_t bit_data_[3];
 };
 
 // who am I values

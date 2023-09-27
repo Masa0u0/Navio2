@@ -35,32 +35,20 @@ uint32_t LSM9DS1::ReadReg(SPIdev& spi_dev, uint8_t ReadAddr)
 
 void LSM9DS1::ReadRegsImu(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  uint8_t tx[255] = { 0 };
-  uint8_t rx[255] = { 0 };
-
-  tx[0] = ReadAddr | READ_FLAG;
-
-  spi_dev_imu_.transfer(tx, rx, Bytes + 1);
+  tx_[0] = ReadAddr | READ_FLAG;
+  spi_dev_imu_.transfer(tx_, rx_, Bytes + 1);
 
   for (uint32_t i = 0; i < Bytes; ++i)
-    ReadBuf[i] = rx[i + 1];
-
-  // usleep(50);
+    ReadBuf[i] = rx_[i + 1];
 }
 
 void LSM9DS1::ReadRegsMag(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  uint8_t tx[255] = { 0 };
-  uint8_t rx[255] = { 0 };
-
-  tx[0] = ReadAddr | READ_FLAG | MULTIPLE_READ;
-
-  spi_dev_mag_.transfer(tx, rx, Bytes + 1);
+  tx_[0] = ReadAddr | READ_FLAG | MULTIPLE_READ;
+  spi_dev_mag_.transfer(tx_, rx_, Bytes + 1);
 
   for (uint32_t i = 0; i < Bytes; ++i)
-    ReadBuf[i] = rx[i + 1];
-
-  // usleep(50);
+    ReadBuf[i] = rx_[i + 1];
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -111,61 +99,55 @@ void LSM9DS1::initialize()
 
 void LSM9DS1::update()
 {
-  uint8_t response[6];
-  int16_t bit_data[3];
-
-  // Read temperature
-  // ReadRegsImu(LSM9DS1XG_OUT_TEMP_L, &response[0], 2);
-  // temperature = (float)(((int16_t)response[1] << 8) | response[0]) / 256. + 25.;
-
-  // Read accelerometer
-  ReadRegsImu(LSM9DS1XG_OUT_X_L_XL, &response[0], 6);
-  for (uint32_t i = 0; i < 3; ++i)
-  {
-    bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
-  }
-  _ax = G_SI * ((float)bit_data[0] * acc_scale_);
-  _ay = G_SI * ((float)bit_data[1] * acc_scale_);
-  _az = G_SI * ((float)bit_data[2] * acc_scale_);
-
-  // Read gyroscope
-  ReadRegsImu(LSM9DS1XG_OUT_X_L_G, &response[0], 6);
-  for (uint32_t i = 0; i < 3; ++i)
-  {
-    bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
-  }
-  _gx = DEG2RAD * ((float)bit_data[0] * gyro_scale_);
-  _gy = DEG2RAD * ((float)bit_data[1] * gyro_scale_);
-  _gz = DEG2RAD * ((float)bit_data[2] * gyro_scale_);
-
-  // Read magnetometer
-  ReadRegsMag(LSM9DS1M_OUT_X_L_M, &response[0], 6);
-  for (uint32_t i = 0; i < 3; ++i)
-  {
-    bit_data[i] = ((int16_t)response[2 * i + 1] << 8) | response[2 * i];
-  }
-  _mx = 100. * ((float)bit_data[0] * mag_scale_);
-  _my = 100. * ((float)bit_data[1] * mag_scale_);
-  _mz = 100. * ((float)bit_data[2] * mag_scale_);
-
-  // Change rotation of LSM9DS1 like in MPU-9250
-  rotate();
+  updateTemperature();
+  updateAccelerometer();
+  updateGyroscope();
+  updateMagnetometer();
 }
 
-void LSM9DS1::rotate()
+void LSM9DS1::updateTemperature()
 {
-  float replacement_acc, replacement_gyro;
+  ReadRegsImu(LSM9DS1XG_OUT_TEMP_L, &response_[0], 2);
+  temperature = (float)(((int16_t)response_[1] << 8) | response_[0]) / 256. + 25.;
+}
 
-  replacement_acc = _ax;
-  _ax = -_ay;
-  _ay = -replacement_acc;
+void LSM9DS1::updateAccelerometer()
+{
+  ReadRegsImu(LSM9DS1XG_OUT_X_L_XL, &response_[0], 6);
+  for (uint32_t i = 0; i < 3; ++i)
+  {
+    bit_data_[i] = ((int16_t)response_[2 * i + 1] << 8) | response_[2 * i];
+  }
 
-  replacement_gyro = _gx;
-  _gx = -_gy;
-  _gy = -replacement_gyro;
+  ax_ = -G_SI * ((float)bit_data_[1] * acc_scale_);
+  ay_ = -G_SI * ((float)bit_data_[0] * acc_scale_);
+  az_ = G_SI * ((float)bit_data_[2] * acc_scale_);
+}
 
-  _my = -_my;
-  _mz = -_mz;
+void LSM9DS1::updateGyroscope()
+{
+  ReadRegsImu(LSM9DS1XG_OUT_X_L_G, &response_[0], 6);
+  for (uint32_t i = 0; i < 3; ++i)
+  {
+    bit_data_[i] = ((int16_t)response_[2 * i + 1] << 8) | response_[2 * i];
+  }
+
+  gx_ = -DEG2RAD * ((float)bit_data_[1] * gyro_scale_);
+  gy_ = -DEG2RAD * ((float)bit_data_[0] * gyro_scale_);
+  gz_ = DEG2RAD * ((float)bit_data_[2] * gyro_scale_);
+}
+
+void LSM9DS1::updateMagnetometer()
+{
+  ReadRegsMag(LSM9DS1M_OUT_X_L_M, &response_[0], 6);
+  for (uint32_t i = 0; i < 3; ++i)
+  {
+    bit_data_[i] = ((int16_t)response_[2 * i + 1] << 8) | response_[2 * i];
+  }
+
+  mx_ = 100. * ((float)bit_data_[0] * mag_scale_);
+  my_ = -100. * ((float)bit_data_[1] * mag_scale_);
+  mz_ = -100. * ((float)bit_data_[2] * mag_scale_);
 }
 
 void LSM9DS1::set_gyro_scale(int scale)

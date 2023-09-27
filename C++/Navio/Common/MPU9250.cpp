@@ -324,9 +324,9 @@ void MPU9250::update()
   {
     bit_data[i] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
-  _ax = G_SI * bit_data[0] / acc_divider;
-  _ay = G_SI * bit_data[1] / acc_divider;
-  _az = G_SI * bit_data[2] / acc_divider;
+  ax_ = G_SI * bit_data[0] / acc_divider;
+  ay_ = G_SI * bit_data[1] / acc_divider;
+  az_ = G_SI * bit_data[2] / acc_divider;
 
   // Get temperature
   bit_data[0] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
@@ -337,16 +337,16 @@ void MPU9250::update()
   {
     bit_data[i - 4] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
-  _gx = DEG2RAD * bit_data[0] / gyro_divider;
-  _gy = DEG2RAD * bit_data[1] / gyro_divider;
-  _gz = DEG2RAD * bit_data[2] / gyro_divider;
+  gx_ = DEG2RAD * bit_data[0] / gyro_divider;
+  gy_ = DEG2RAD * bit_data[1] / gyro_divider;
+  gz_ = DEG2RAD * bit_data[2] / gyro_divider;
 
   // Get Magnetometer value
   for (i = 7; i < 10; i++)
   {
     bit_data[i - 7] = ((int16_t)response[i * 2 + 1] << 8) | response[i * 2];
   }
-  _mx = bit_data[0] * magnetometer_ASA[0];
-  _my = bit_data[1] * magnetometer_ASA[1];
-  _mz = bit_data[2] * magnetometer_ASA[2];
+  mx_ = bit_data[0] * magnetometer_ASA[0];
+  my_ = bit_data[1] * magnetometer_ASA[1];
+  mz_ = bit_data[2] * magnetometer_ASA[2];
 }
