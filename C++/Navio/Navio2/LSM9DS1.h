@@ -145,9 +145,9 @@ private:
     BITS_BW_XL_211HZ = 0b01,
     BITS_BW_XL_408HZ = 0b00,
     BITS_HR = 1 << 7,
+    BITS_DCF_9 = 0b10 << 5,
     BITS_DCF_50 = 0b00 << 5,
     BITS_DCF_100 = 0b01 << 5,
-    BITS_DCF_9 = 0b10 << 5,
     BITS_DCF_400 = 0b11 << 5,
   };
 
