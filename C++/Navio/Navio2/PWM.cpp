@@ -40,7 +40,7 @@ bool PWM::enable(const uint32_t& channel)
   return true;
 }
 
-bool PWM::set_period(const uint32_t& channel, const uint32_t& freq)
+bool PWM::setPeriod(const uint32_t& channel, const uint32_t& freq)
 {
   char path[60] = "/sys/class/pwm/pwmchip0";
   char path_ch[20];
