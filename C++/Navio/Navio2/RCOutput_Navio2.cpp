@@ -4,22 +4,22 @@ RCOutput_Navio2::RCOutput_Navio2()
 {
 }
 
-bool RCOutput_Navio2::initialize(int channel)
+bool RCOutput_Navio2::initialize(const uint32_t& channel)
 {
   return pwm.init(channel);
 }
 
-bool RCOutput_Navio2::enable(int channel)
+bool RCOutput_Navio2::enable(const uint32_t& channel)
 {
   return pwm.enable(channel);
 }
 
-bool RCOutput_Navio2::set_frequency(int channel, float frequency)
+bool RCOutput_Navio2::setFrequency(const uint32_t& channel, const float& frequency)
 {
   return pwm.set_period(channel, frequency);
 }
 
-bool RCOutput_Navio2::set_duty_cycle(int channel, float period)
+bool RCOutput_Navio2::setDutyCycle(const uint32_t& channel, const float& period)
 {
-  return pwm.set_duty_cycle(channel, period / 1000);
+  return pwm.setDutyCycle(channel, period / 1000);
 }

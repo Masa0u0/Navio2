@@ -7,10 +7,10 @@ class RCOutput_Navio : public RCOutput
 {
 public:
   explicit RCOutput_Navio();
-  bool initialize(int) override;
-  bool enable(int) override;
-  bool set_frequency(int, float frequency) override;
-  bool set_duty_cycle(int channel, float period) override;
+  bool initialize(const uint32_t&) override;
+  bool enable(const uint32_t&) override;
+  bool setFrequency(const uint32_t&, const float& frequency) override;
+  bool setDutyCycle(const uint32_t& channel, const float& period) override;
 
 private:
   PCA9685 pwm;
