@@ -38,7 +38,7 @@ void UBXScanner::reset()
   state_ = Sync1;
 }
 
-int UBXScanner::update(uint8_t data)
+int UBXScanner::update(const uint8_t& data)
 {
   if (state_ != Done)
     message_[position_++] = data;

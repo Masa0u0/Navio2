@@ -9,7 +9,7 @@
 
 static constexpr uint32_t kUbxBufferLength = 1024;
 static constexpr uint32_t kPreambleOffset = 2;
-static constexpr uint32_t kSpiSpeedHz = 200000;  // Maximum frequency is 5.5MHz
+static constexpr uint32_t kSpiSpeedHz = 5500000;  // Maximum frequency is 5.5MHz
 static constexpr uint32_t kConfigureMessageSize = 11;
 static constexpr uint32_t kMinMaxTrkChForMajorGnss = 4;
 static constexpr uint32_t kWaitForGnssAck = 1000000;  // [us]
@@ -38,7 +38,7 @@ public:
   const uint32_t& getPosition() const;
 
   void reset();
-  int update(uint8_t data);
+  int update(const uint8_t& data);
 
 private:
   uint8_t message_[kUbxBufferLength];  // Buffer for UBX message
