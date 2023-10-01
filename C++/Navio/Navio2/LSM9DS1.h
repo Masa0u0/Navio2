@@ -8,6 +8,8 @@
  */
 class LSM9DS1 : public InertialSensor
 {
+  static constexpr uint32_t kSpiSpeedHz = 10000000;  // Maximum frequency is 10MHz
+
 public:
   explicit LSM9DS1();
 

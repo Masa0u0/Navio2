@@ -3,7 +3,7 @@
 #include "./LSM9DS1.h"
 
 #define DEVICE_ACC_GYRO "/dev/spidev0.3"
-#define DEVICE_MAGNETOMETER "/dev/spidev0.2"
+#define DEVICE_MAG "/dev/spidev0.2"
 
 #define READ_FLAG 0x80
 #define MULTIPLE_READ 0x40
@@ -12,7 +12,8 @@
 #define DEG2RAD (M_PI / 180.)
 #define INITIALIZE_SLEEP 200  // [us]
 
-LSM9DS1::LSM9DS1() : spi_dev_imu_(DEVICE_ACC_GYRO), spi_dev_mag_(DEVICE_MAGNETOMETER)
+LSM9DS1::LSM9DS1()
+  : spi_dev_imu_(DEVICE_ACC_GYRO, kSpiSpeedHz), spi_dev_mag_(DEVICE_MAG, kSpiSpeedHz)
 {
 }
 

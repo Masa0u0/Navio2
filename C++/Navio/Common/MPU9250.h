@@ -5,6 +5,8 @@
 
 class MPU9250 : public InertialSensor
 {
+  static constexpr uint32_t kSpiSpeedHz = 1000000;  // Maximum frequency is 1MHz
+
 public:
   explicit MPU9250();
 

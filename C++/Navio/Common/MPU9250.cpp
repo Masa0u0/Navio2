@@ -2,12 +2,13 @@
 
 #include "MPU9250.h"
 
+#define DEVICE "/dev/spidev0.1"
 #define G_SI 9.80665
 #define DEG2RAD (M_PI / 180.)
 
 //-----------------------------------------------------------------------------------------------
 
-MPU9250::MPU9250() : spi_dev_("/dev/spidev0.1")
+MPU9250::MPU9250() : spi_dev_(DEVICE, kSpiSpeedHz)
 {
 }
 
