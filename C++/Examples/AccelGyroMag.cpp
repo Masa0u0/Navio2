@@ -21,7 +21,7 @@ std::unique_ptr<InertialSensor> get_inertial_sensor(std::string sensor_name)
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 

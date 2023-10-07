@@ -148,13 +148,13 @@ void DSHOT::sendPacket(uint32_t bcm, uint32_t packet)
 void DSHOT::sendOne(uint32_t bcm)
 {
   setHigh(bcm);
-  if (nanosleep(&t1_high_, NULL) != 0)
+  if (nanosleep(&t1_high_, nullptr) != 0)
   {
     throw runtime_error("Error occurred during sleep.");
   }
 
   setLow(bcm);
-  if (nanosleep(&t1_low_, NULL) != 0)
+  if (nanosleep(&t1_low_, nullptr) != 0)
   {
     throw runtime_error("Error occurred during sleep.");
   }
@@ -163,13 +163,13 @@ void DSHOT::sendOne(uint32_t bcm)
 void DSHOT::sendZero(uint32_t bcm)
 {
   setHigh(bcm);
-  if (nanosleep(&t0_high_, NULL) != 0)
+  if (nanosleep(&t0_high_, nullptr) != 0)
   {
     throw runtime_error("Error occurred during sleep.");
   }
 
   setLow(bcm);
-  if (nanosleep(&t0_low_, NULL) != 0)
+  if (nanosleep(&t0_low_, nullptr) != 0)
   {
     throw runtime_error("Error occurred during sleep.");
   }

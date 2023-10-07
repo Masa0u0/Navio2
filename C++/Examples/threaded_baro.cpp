@@ -24,7 +24,7 @@ void* acquireBarometerData(void* barom)
     // sleep(0.5);
   }
 
-  pthread_exit(NULL);
+  pthread_exit(nullptr);
 }
 
 int main()
@@ -39,7 +39,7 @@ int main()
 
   pthread_t baro_thread;
 
-  if (pthread_create(&baro_thread, NULL, acquireBarometerData, (void*)&baro))
+  if (pthread_create(&baro_thread, nullptr, acquireBarometerData, (void*)&baro))
   {
     printf("Error: Failed to create barometer thread\n");
     return 0;
@@ -52,7 +52,7 @@ int main()
     sleep(1);
   }
 
-  pthread_exit(NULL);
+  pthread_exit(nullptr);
 
   return 1;
 }

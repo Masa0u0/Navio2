@@ -356,7 +356,7 @@ std::unique_ptr<InertialSensor> get_inertial_sensor(std::string sensor_name)
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -429,13 +429,13 @@ void imuLoop(AHRS* ahrs, Socket sock)
 
   //----------------------- Calculate delta time ----------------------------
 
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   previoustime = currenttime;
   currenttime = 1000000 * tv.tv_sec + tv.tv_usec;
   dt = (currenttime - previoustime) / 1000000.0;
   if (dt < 1 / 1300.0)
     usleep((1 / 1300.0 - dt) * 1000000);
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   currenttime = 1000000 * tv.tv_sec + tv.tv_usec;
   dt = (currenttime - previoustime) / 1000000.0;
 

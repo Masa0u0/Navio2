@@ -33,7 +33,7 @@
 
 using namespace Navio;
 
-Pin::Pin(uint8_t pin) : _pin(pin), _gpio(NULL), _mode(GpioModeInput)
+Pin::Pin(uint8_t pin) : _pin(pin), _gpio(nullptr), _mode(GpioModeInput)
 {
 }
 
@@ -96,7 +96,7 @@ bool Pin::init()
   }
 
   void* gpio_map = mmap(
-    NULL,                   /* any adddress in our space will do */
+    nullptr,                   /* any adddress in our space will do */
     BLOCK_SIZE,             /* map length */
     PROT_READ | PROT_WRITE, /* enable reading & writting to mapped memory */
     MAP_SHARED,             /* shared with other processes */
