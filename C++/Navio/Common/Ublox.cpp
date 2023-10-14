@@ -16,21 +16,6 @@ UBXScanner::UBXScanner()
   reset();
 }
 
-uint8_t* UBXScanner::getMessage()
-{
-  return message_;
-}
-
-const uint32_t& UBXScanner::getMessageLength() const
-{
-  return message_length_;
-}
-
-const uint32_t& UBXScanner::getPosition() const
-{
-  return position_;
-}
-
 void UBXScanner::reset()
 {
   message_length_ = 0;
@@ -137,26 +122,6 @@ uint16_t UBXParser::calcId()
   // If we got everything right, then it's time to decide, what type of message this is
   // ID is a two-byte number with little endianness
   return latest_id_ = (*(s + 2)) << 8 | (*(s + 3));
-}
-
-uint8_t* UBXParser::getMessage() const
-{
-  return message_;
-}
-
-const uint32_t& UBXParser::getLength() const
-{
-  return scanner_->getMessageLength();
-}
-
-const uint32_t& UBXParser::getPosition() const
-{
-  return scanner_->getPosition();
-}
-
-const uint16_t& UBXParser::getLatestMsg() const
-{
-  return latest_id_;
 }
 
 Ublox::Ublox()

@@ -33,9 +33,9 @@ public:
 
   explicit UBXScanner();
 
-  uint8_t* getMessage();
-  const uint32_t& getMessageLength() const;
-  const uint32_t& getPosition() const;
+  inline uint8_t* getMessage();
+  inline const uint32_t& getMessageLength() const;
+  inline const uint32_t& getPosition() const;
 
   void reset();
   int update(const uint8_t& data);
@@ -55,10 +55,10 @@ public:
 
   uint16_t calcId();
 
-  uint8_t* getMessage() const;
-  const uint32_t& getLength() const;
-  const uint32_t& getPosition() const;
-  const uint16_t& getLatestMsg() const;
+  inline uint8_t* getMessage() const;
+  inline const uint32_t& getLength() const;
+  inline const uint32_t& getPosition() const;
+  inline const uint16_t& getLatestMsg() const;
 
 private:
   UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
@@ -289,3 +289,38 @@ private:
   bool configureGnss(uint8_t gnss_id, uint8_t res_track_ch, uint8_t max_track_ch, bool enable);
   bool waitForAcknowledge(uint8_t cls, uint8_t id);
 };
+
+inline uint8_t* UBXScanner::getMessage()
+{
+  return message_;
+}
+
+inline const uint32_t& UBXScanner::getMessageLength() const
+{
+  return message_length_;
+}
+
+inline const uint32_t& UBXScanner::getPosition() const
+{
+  return position_;
+}
+
+inline uint8_t* UBXParser::getMessage() const
+{
+  return message_;
+}
+
+inline const uint32_t& UBXParser::getLength() const
+{
+  return scanner_->getMessageLength();
+}
+
+inline const uint32_t& UBXParser::getPosition() const
+{
+  return scanner_->getPosition();
+}
+
+inline const uint16_t& UBXParser::getLatestMsg() const
+{
+  return latest_id_;
+}
