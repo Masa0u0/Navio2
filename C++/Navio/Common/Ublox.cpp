@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <cassert>
+#include <chrono>
 
 #include "Ublox.h"
 #include "Util.h"
@@ -8,25 +9,11 @@
 #define GPS_DEVICE "/dev/spidev0.0"
 
 using namespace std;
+using namespace chrono;
 
 UBXScanner::UBXScanner()
 {
   reset();
-}
-
-uint8_t* UBXScanner::getMessage()
-{
-  return message_;
-}
-
-const uint32_t& UBXScanner::getMessageLength() const
-{
-  return message_length_;
-}
-
-const uint32_t& UBXScanner::getPosition() const
-{
-  return position_;
 }
 
 void UBXScanner::reset()
@@ -36,7 +23,7 @@ void UBXScanner::reset()
   state_ = Sync1;
 }
 
-int UBXScanner::update(uint8_t data)
+int UBXScanner::update(const uint8_t& data)
 {
   if (state_ != Done)
     message_[position_++] = data;
@@ -137,56 +124,50 @@ uint16_t UBXParser::calcId()
   return latest_id_ = (*(s + 2)) << 8 | (*(s + 3));
 }
 
-uint8_t* UBXParser::getMessage() const
-{
-  return message_;
-}
-
-const uint32_t& UBXParser::getLength() const
-{
-  return scanner_->getMessageLength();
-}
-
-const uint32_t& UBXParser::getPosition() const
-{
-  return scanner_->getPosition();
-}
-
-const uint16_t& UBXParser::getLatestId() const
-{
-  return latest_id_;
-}
-
 Ublox::Ublox()
   : spi_dev_(GPS_DEVICE, kSpiSpeedHz), scanner_(new UBXScanner()), parser_(new UBXParser(scanner_))
 {
+  if (!enableMsg(ACK_NAK, true) || !enableMsg(ACK_ACK, true))
+  {
+    throw runtime_error("Failed to configure.");
+  }
 }
 
 Ublox::Ublox(UBXScanner* scan, UBXParser* pars)
   : spi_dev_(GPS_DEVICE, kSpiSpeedHz), scanner_(scan), parser_(pars)
 {
+  if (!enableMsg(ACK_NAK, true) || !enableMsg(ACK_ACK, true))
+  {
+    throw runtime_error("Failed to configure.");
+  }
 }
 
-bool Ublox::enableNavMsg(message_t msg, bool enable)
+bool Ublox::enableMsg(message_t msg, bool enable)
 {
   CfgMsg cfg_msg;
 
-  cfg_msg.msgClass = CLASS_NAV;
-  cfg_msg.msgID = msg - (CLASS_NAV << 8);
+  cfg_msg.msgClass = msg >> 8;                       // 上位8ビット
+  cfg_msg.msgID = static_cast<uint8_t>(msg & 0xFF);  // 下位8ビット
   cfg_msg.rate = enable;
 
   return sendMessage(CLASS_CFG, ID_CFG_MSG, &cfg_msg, sizeof(CfgMsg));
 }
 
-bool Ublox::enableAllNavMsgs(bool enable)
+bool Ublox::enableAllMsgs(bool enable)
 {
   bool ok = true;
 
-  ok &= enableNavMsg(NAV_POSLLH, enable);
-  ok &= enableNavMsg(NAV_STATUS, enable);
-  ok &= enableNavMsg(NAV_PVT, enable);
-  ok &= enableNavMsg(NAV_VELNED, enable);
-  ok &= enableNavMsg(NAV_COV, enable);
+  ok &= enableMsg(NAV_POSLLH, enable);
+  ok &= enableMsg(NAV_STATUS, enable);
+  ok &= enableMsg(NAV_DOP, enable);
+  ok &= enableMsg(NAV_PVT, enable);
+  ok &= enableMsg(NAV_VELNED, enable);
+  ok &= enableMsg(NAV_TIMEGPS, enable);
+  ok &= enableMsg(NAV_TIMEUTC, enable);
+  ok &= enableMsg(NAV_COV, enable);
+
+  ok &= enableMsg(MON_HW, enable);
+  ok &= enableMsg(MON_HW2, enable);
 
   return ok;
 }
@@ -216,127 +197,35 @@ bool Ublox::configureDynamicsModel(dynamics_model dyn_model)
 bool Ublox::configureGnss_GPS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
-  assert(max_track_ch >= res_track_ch);
-
-  CfgGnss cfg_gnss;
-  memset(&cfg_gnss, 0, sizeof(CfgGnss));
-
-  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
-  cfg_gnss.numConfigBlocks = 1;
-
-  cfg_gnss.block.gnssId = 0;
-  cfg_gnss.block.resTrkCh = res_track_ch;
-  cfg_gnss.block.maxTrkCh = max_track_ch;
-  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 | 0x20 : 0x00;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;  // M8シリーズはL1A/Cのみ受信できる (1.5節)
-
-  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
-  usleep(kWaitForGnssAcknowledgement);
-  return state;
+  return configureGnss(GPS, res_track_ch, max_track_ch, enable);
 }
 
 bool Ublox::configureGnss_SBAS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
-  assert(max_track_ch >= res_track_ch);
-
-  CfgGnss cfg_gnss;
-  memset(&cfg_gnss, 0, sizeof(CfgGnss));
-
-  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
-  cfg_gnss.numConfigBlocks = 1;
-
-  cfg_gnss.block.gnssId = 1;
-  cfg_gnss.block.resTrkCh = res_track_ch;
-  cfg_gnss.block.maxTrkCh = max_track_ch;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
-
-  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
-  usleep(kWaitForGnssAcknowledgement);
-  return state;
+  return configureGnss(SBAS, res_track_ch, max_track_ch, enable);
 }
 
 bool Ublox::configureGnss_Galileo(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
-  assert(max_track_ch >= res_track_ch);
-
-  CfgGnss cfg_gnss;
-  memset(&cfg_gnss, 0, sizeof(CfgGnss));
-
-  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
-  cfg_gnss.numConfigBlocks = 1;
-
-  cfg_gnss.block.gnssId = 2;
-  cfg_gnss.block.resTrkCh = res_track_ch;
-  cfg_gnss.block.maxTrkCh = max_track_ch;
-  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 | 0x20 : 0x00;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
-
-  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
-  usleep(kWaitForGnssAcknowledgement);
-  return state;
+  return configureGnss(GALILEO, res_track_ch, max_track_ch, enable);
 }
 
 bool Ublox::configureGnss_BeiDou(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
   assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
-  assert(max_track_ch >= res_track_ch);
-
-  CfgGnss cfg_gnss;
-  memset(&cfg_gnss, 0, sizeof(CfgGnss));
-
-  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
-  cfg_gnss.numConfigBlocks = 1;
-
-  cfg_gnss.block.gnssId = 3;
-  cfg_gnss.block.resTrkCh = res_track_ch;
-  cfg_gnss.block.maxTrkCh = max_track_ch;
-  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 | 0x80 : 0x00;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
-
-  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
-  usleep(kWaitForGnssAcknowledgement);
-  return state;
+  return configureGnss(BEIDOU, res_track_ch, max_track_ch, enable);
 }
 
 bool Ublox::configureGnss_QZSS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
-  assert(max_track_ch >= res_track_ch);
-
-  CfgGnss cfg_gnss;
-  memset(&cfg_gnss, 0, sizeof(CfgGnss));
-
-  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
-  cfg_gnss.numConfigBlocks = 1;
-
-  cfg_gnss.block.gnssId = 5;
-  cfg_gnss.block.resTrkCh = res_track_ch;
-  cfg_gnss.block.maxTrkCh = max_track_ch;
-  // cfg_gnss.block.flags = enable ? 0x01 | 0x04 | 0x10 | 0x20 : 0x00;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
-
-  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
-  usleep(kWaitForGnssAcknowledgement);
-  return state;
+  return configureGnss(QZSS, res_track_ch, max_track_ch, enable);
 }
 
 bool Ublox::configureGnss_GLONASS(bool enable, uint8_t res_track_ch, uint8_t max_track_ch)
 {
-  CfgGnss cfg_gnss;
-  memset(&cfg_gnss, 0, sizeof(CfgGnss));
-
-  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
-  cfg_gnss.numConfigBlocks = 1;
-
-  cfg_gnss.block.gnssId = 6;
-  cfg_gnss.block.resTrkCh = res_track_ch;
-  cfg_gnss.block.maxTrkCh = max_track_ch;
-  // cfg_gnss.block.flags = enable ? 0x01 | 0x10 : 0x00;
-  cfg_gnss.block.flags = enable ? 0x01 : 0x00;
-
-  const auto state = sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss));
-  usleep(kWaitForGnssAcknowledgement);
-  return state;
+  assert(max_track_ch >= kMinMaxTrkChForMajorGnss);
+  return configureGnss(GLONASS, res_track_ch, max_track_ch, enable);
 }
 
 uint16_t Ublox::update()
@@ -358,9 +247,9 @@ uint16_t Ublox::update()
   return parser_->calcId();
 }
 
-void Ublox::decode(NavPayload_POSLLH& data) const
+void Ublox::decode(NavPosllhPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_POSLLH)
+  if (parser_->getLatestMsg() != Ublox::NAV_POSLLH)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -369,14 +258,14 @@ void Ublox::decode(NavPayload_POSLLH& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.lon = ((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-7;
-  data.lat = ((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-7;
-  data.hMSL = ((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22))) * 1e-3;
+  data.lon = int((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-7;
+  data.lat = int((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-7;
+  data.hMSL = int((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22))) * 1e-3;
 }
 
-void Ublox::decode(NavPayload_STATUS& data) const
+void Ublox::decode(NavStatusPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_STATUS)
+  if (parser_->getLatestMsg() != Ublox::NAV_STATUS)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -385,13 +274,20 @@ void Ublox::decode(NavPayload_STATUS& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.gpsFix = *(s + 10);
-  data.flags = *(s + 11);
+  data.gpsFix = uint8_t(*(s + 10));
+
+  const auto flags = uint8_t(*(s + 11));
+  data.gpsFixOk = (flags >> 0) & 1;
 }
 
-void Ublox::decode(NavPayload_PVT& data) const
+void Ublox::decode(NavDopPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_PVT)
+  throw;  // TODO
+}
+
+void Ublox::decode(NavPvtPayload& data) const
+{
+  if (parser_->getLatestMsg() != Ublox::NAV_PVT)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -400,24 +296,38 @@ void Ublox::decode(NavPayload_PVT& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.year = (*(s + 11) << 8) | (*(s + 10));
-  data.month = *(s + 12);
-  data.day = *(s + 13);
-  data.hour = *(s + 14);
-  data.min = *(s + 15);
-  data.sec = *(s + 16);
+  data.year = uint16_t((*(s + 11) << 8) | (*(s + 10)));
+  data.month = uint8_t(*(s + 12));
+  data.day = uint8_t(*(s + 13));
+  data.hour = uint8_t(*(s + 14));
+  data.min = uint8_t(*(s + 15));
+  data.sec = uint8_t(*(s + 16));
 
-  data.lon = ((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;
-  data.lat = ((*(s + 37) << 24) | (*(s + 36) << 16) | (*(s + 35) << 8) | (*(s + 34))) * 1e-7;
-  data.hMSL = ((*(s + 45) << 24) | (*(s + 44) << 16) | (*(s + 43) << 8) | (*(s + 42))) * 1e-3;
-  data.velN = ((*(s + 57) << 24) | (*(s + 56) << 16) | (*(s + 55) << 8) | (*(s + 54))) * 1e-3;
-  data.velE = ((*(s + 61) << 24) | (*(s + 60) << 16) | (*(s + 59) << 8) | (*(s + 58))) * 1e-3;
-  data.velD = ((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62))) * 1e-3;
+  const auto valid = uint8_t(*(s + 17));
+  data.validDate = (valid >> 0) & 1;
+  data.validTime = (valid >> 1) & 1;
+  data.fullyResolved = (valid >> 2) & 1;
+  data.validMag = (valid >> 3) & 1;
+
+  data.tAcc = uint32_t((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18)));
+  data.nano = int((*(s + 25) << 24) | (*(s + 24) << 16) | (*(s + 23) << 8) | (*(s + 22)));
+
+  data.fixType = uint8_t(*(s + 26));
+
+  const auto flags = uint8_t(*(s + 27));
+  data.gnssFixOk = (flags >> 0) & 1;
+
+  data.lon = int((*(s + 33) << 24) | (*(s + 32) << 16) | (*(s + 31) << 8) | (*(s + 30))) * 1e-7;
+  data.lat = int((*(s + 37) << 24) | (*(s + 36) << 16) | (*(s + 35) << 8) | (*(s + 34))) * 1e-7;
+  data.hMSL = int((*(s + 45) << 24) | (*(s + 44) << 16) | (*(s + 43) << 8) | (*(s + 42))) * 1e-3;
+  data.velN = int((*(s + 57) << 24) | (*(s + 56) << 16) | (*(s + 55) << 8) | (*(s + 54))) * 1e-3;
+  data.velE = int((*(s + 61) << 24) | (*(s + 60) << 16) | (*(s + 59) << 8) | (*(s + 58))) * 1e-3;
+  data.velD = int((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62))) * 1e-3;
 }
 
-void Ublox::decode(NavPayload_VELNED& data) const
+void Ublox::decode(NavVelnedPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_VELNED)
+  if (parser_->getLatestMsg() != Ublox::NAV_VELNED)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -426,14 +336,43 @@ void Ublox::decode(NavPayload_VELNED& data) const
   const auto pos = parser_->getPosition() - parser_->getLength();
   const auto s = msg + pos;
 
-  data.velN = ((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-2;
-  data.velE = ((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-2;
-  data.velD = ((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
+  data.velN = int((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10))) * 1e-2;
+  data.velE = int((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14))) * 1e-2;
+  data.velD = int((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
 }
 
-void Ublox::decode(NavPayload_COV& data) const
+void Ublox::decode(NavTimegpsPayload& data) const
 {
-  if (parser_->getLatestId() != Ublox::NAV_COV)
+  throw;  // TODO
+}
+
+void Ublox::decode(NavTimeutcPayload& data) const
+{
+  if (parser_->getLatestMsg() != Ublox::NAV_TIMEUTC)
+  {
+    throw runtime_error("Message type mismatch.");
+  }
+
+  const auto msg = parser_->getMessage();
+  const auto pos = parser_->getPosition() - parser_->getLength();
+  const auto s = msg + pos;
+
+  data.tAcc = uint32_t((*(s + 13) << 24) | (*(s + 12) << 16) | (*(s + 11) << 8) | (*(s + 10)));
+  data.nano = int((*(s + 17) << 24) | (*(s + 16) << 16) | (*(s + 15) << 8) | (*(s + 14)));
+  data.year = uint16_t((*(s + 19) << 8) | (*(s + 18)));
+  data.month = uint8_t(*(s + 20));
+  data.day = uint8_t(*(s + 21));
+  data.hour = uint8_t(*(s + 22));
+  data.min = uint8_t(*(s + 23));
+  data.sec = uint8_t(*(s + 24));
+
+  const auto valid = uint8_t(*(s + 25));
+  data.validUTC = (valid >> 2) & 1;
+}
+
+void Ublox::decode(NavCovPayload& data) const
+{
+  if (parser_->getLatestMsg() != Ublox::NAV_COV)
   {
     throw runtime_error("Message type mismatch.");
   }
@@ -466,6 +405,46 @@ void Ublox::decode(NavPayload_COV& data) const
     decodeBinary32((*(s + 65) << 24) | (*(s + 64) << 16) | (*(s + 63) << 8) | (*(s + 62)));
   data.velCovDD =
     decodeBinary32((*(s + 69) << 24) | (*(s + 68) << 16) | (*(s + 67) << 8) | (*(s + 66)));
+}
+
+void Ublox::decode(AckNakPayload& data) const
+{
+  if (parser_->getLatestMsg() != Ublox::ACK_NAK)
+  {
+    throw runtime_error("Message type mismatch.");
+  }
+
+  const auto msg = parser_->getMessage();
+  const auto pos = parser_->getPosition() - parser_->getLength();
+  const auto s = msg + pos;
+
+  data.clsID = uint8_t(*(s + 6));
+  data.msgID = uint8_t(*(s + 7));
+}
+
+void Ublox::decode(AckAckPayload& data) const
+{
+  if (parser_->getLatestMsg() != Ublox::ACK_ACK)
+  {
+    throw runtime_error("Message type mismatch.");
+  }
+
+  const auto msg = parser_->getMessage();
+  const auto pos = parser_->getPosition() - parser_->getLength();
+  const auto s = msg + pos;
+
+  data.clsID = uint8_t(*(s + 6));
+  data.msgID = uint8_t(*(s + 7));
+}
+
+void Ublox::decode(MonHwPayload& data) const
+{
+  throw;  // TODO
+}
+
+void Ublox::decode(MonHw2Payload& data) const
+{
+  throw;  // TODO
 }
 
 bool Ublox::sendMessage(uint8_t msg_class, uint8_t msg_id, void* msg, uint16_t size)
@@ -505,4 +484,57 @@ Ublox::CheckSum Ublox::calculateCheckSum(uint8_t* message, size_t size) const
     checksum.CK_B += checksum.CK_A;
   }
   return checksum;
+}
+
+bool Ublox::configureGnss(uint8_t gnss_id, uint8_t res_track_ch, uint8_t max_track_ch, bool enable)
+{
+  assert(max_track_ch >= res_track_ch);
+
+  CfgGnss cfg_gnss;
+  memset(&cfg_gnss, 0, sizeof(CfgGnss));
+
+  cfg_gnss.msgVer = 0x00;
+  cfg_gnss.numTrkChUse = 0xFF;  // 使えるチャンネルは全て使う
+  cfg_gnss.numConfigBlocks = 1;
+
+  cfg_gnss.block.gnssId = gnss_id;
+  cfg_gnss.block.resTrkCh = res_track_ch;
+  cfg_gnss.block.maxTrkCh = max_track_ch;
+  cfg_gnss.block.flags = enable ? (0x01 << 16) | 0x01 : 0;  // M8シリーズはL1A/Cのみ受信可 (1.5節)
+
+  if (!sendMessage(CLASS_CFG, ID_CFG_GNSS, &cfg_gnss, sizeof(CfgGnss)))
+  {
+    throw runtime_error("Failed to send message.");
+  }
+
+  return waitForAcknowledge(CLASS_CFG, ID_CFG_GNSS);
+}
+
+bool Ublox::waitForAcknowledge(uint8_t cls, uint8_t id)
+{
+  AckAckPayload ack;
+  AckNakPayload nak;
+
+  const auto start_time = system_clock::now();
+  while (duration_cast<microseconds>(system_clock::now() - start_time).count() < kWaitForGnssAck)
+  {
+    const auto msg = update();
+    switch (msg)
+    {
+      case Ublox::ACK_ACK:
+        decode(ack);
+        if (ack.clsID == cls && ack.msgID == id)
+          return true;
+        break;
+      case Ublox::ACK_NAK:
+        decode(nak);
+        if (nak.clsID == cls && nak.msgID == id)
+          return false;
+        break;
+      default:
+        break;
+    }
+  }
+
+  throw runtime_error("Failed to get acknowledgement message.");
 }

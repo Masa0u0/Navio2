@@ -1,11 +1,14 @@
+#include <cmath>
+
 #include "MPU9250.h"
 
+#define DEVICE "/dev/spidev0.1"
 #define G_SI 9.80665
-#define PI 3.14159
+#define DEG2RAD (M_PI / 180.)
 
 //-----------------------------------------------------------------------------------------------
 
-MPU9250::MPU9250() : spi_dev_("/dev/spidev0.1")
+MPU9250::MPU9250() : spi_dev_(DEVICE, kSpiSpeedHz)
 {
 }
 
@@ -43,11 +46,10 @@ void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_.transfer(tx, rx, Bytes + 1);
+  // usleep(50);
 
   for (i = 0; i < Bytes; i++)
     ReadBuf[i] = rx[i + 1];
-
-  usleep(50);
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -95,7 +97,7 @@ returns 1 if an error occurred
 
 #define MPU_InitRegNum 16
 
-bool MPU9250::initialize()
+void MPU9250::initialize()
 {
   uint8_t i = 0;
   uint8_t MPU_Init_Data[MPU_InitRegNum][2] = {
@@ -130,8 +132,10 @@ bool MPU9250::initialize()
 
   };
 
-  set_acc_scale(BITS_FS_16G);
-  set_gyro_scale(BITS_FS_2000DPS);
+  // set_acc_scale(BITS_FS_16G);
+  // set_gyro_scale(BITS_FS_2000DPS);
+  set_acc_scale(BITS_FS_4G);
+  set_gyro_scale(BITS_FS_500DPS);
 
   for (i = 0; i < MPU_InitRegNum; i++)
   {
@@ -140,8 +144,8 @@ bool MPU9250::initialize()
   }
 
   calib_mag();
-  return 0;
 }
+
 /*-----------------------------------------------------------------------------------------------
                                 ACCELEROMETER SCALE
 usage: call this function at startup, after initialization, to set the right range for the
@@ -321,9 +325,9 @@ void MPU9250::update()
   {
     bit_data[i] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
-  _ax = G_SI * bit_data[0] / acc_divider;
-  _ay = G_SI * bit_data[1] / acc_divider;
-  _az = G_SI * bit_data[2] / acc_divider;
+  ax_ = G_SI * bit_data[0] / acc_divider;
+  ay_ = G_SI * bit_data[1] / acc_divider;
+  az_ = G_SI * bit_data[2] / acc_divider;
 
   // Get temperature
   bit_data[0] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
@@ -334,16 +338,16 @@ void MPU9250::update()
   {
     bit_data[i - 4] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
-  _gx = (PI / 180) * bit_data[0] / gyro_divider;
-  _gy = (PI / 180) * bit_data[1] / gyro_divider;
-  _gz = (PI / 180) * bit_data[2] / gyro_divider;
+  gx_ = DEG2RAD * bit_data[0] / gyro_divider;
+  gy_ = DEG2RAD * bit_data[1] / gyro_divider;
+  gz_ = DEG2RAD * bit_data[2] / gyro_divider;
 
   // Get Magnetometer value
   for (i = 7; i < 10; i++)
   {
     bit_data[i - 7] = ((int16_t)response[i * 2 + 1] << 8) | response[i * 2];
   }
-  _mx = bit_data[0] * magnetometer_ASA[0];
-  _my = bit_data[1] * magnetometer_ASA[1];
-  _mz = bit_data[2] * magnetometer_ASA[2];
+  mx_ = bit_data[0] * magnetometer_ASA[0];
+  my_ = bit_data[1] * magnetometer_ASA[1];
+  mz_ = bit_data[2] * magnetometer_ASA[2];
 }

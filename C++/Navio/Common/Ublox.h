@@ -3,16 +3,16 @@
 #include <string>
 
 #include "./SPIdev.h"
-#include "./nav_payloads.hpp"
+#include "./ubx_payload.hpp"
 
 #define PACKED __attribute__((__packed__))  // 構造体のメンバ変数がメモリ上で連続する
 
 static constexpr uint32_t kUbxBufferLength = 1024;
 static constexpr uint32_t kPreambleOffset = 2;
-static constexpr uint32_t kSpiSpeedHz = 200000;  // Maximum frequency is 5.5MHz
+static constexpr uint32_t kSpiSpeedHz = 5500000;  // Maximum frequency is 5.5MHz
 static constexpr uint32_t kConfigureMessageSize = 11;
 static constexpr uint32_t kMinMaxTrkChForMajorGnss = 4;
-static constexpr uint32_t kWaitForGnssAcknowledgement = 500000;  // [us]
+static constexpr uint32_t kWaitForGnssAck = 1000000;  // [us]
 
 class UBXScanner
 {
@@ -33,12 +33,12 @@ public:
 
   explicit UBXScanner();
 
-  uint8_t* getMessage();
-  const uint32_t& getMessageLength() const;
-  const uint32_t& getPosition() const;
+  inline uint8_t* getMessage();
+  inline const uint32_t& getMessageLength() const;
+  inline const uint32_t& getPosition() const;
 
   void reset();
-  int update(uint8_t data);
+  int update(const uint8_t& data);
 
 private:
   uint8_t message_[kUbxBufferLength];  // Buffer for UBX message
@@ -55,10 +55,10 @@ public:
 
   uint16_t calcId();
 
-  uint8_t* getMessage() const;
-  const uint32_t& getLength() const;
-  const uint32_t& getPosition() const;
-  const uint16_t& getLatestId() const;
+  inline uint8_t* getMessage() const;
+  inline const uint32_t& getLength() const;
+  inline const uint32_t& getPosition() const;
+  inline const uint16_t& getLatestMsg() const;
 
 private:
   UBXScanner* scanner_;  // Pointer to the scanner, which finds the messages in the data stream
@@ -75,37 +75,70 @@ private:
 class Ublox
 {
 private:
-  enum ubx_protocol_bytes
+  enum ubx_protocol_bytes : uint8_t
   {
     PREAMBLE1 = 0xb5,
     PREAMBLE2 = 0x62,
 
-    CLASS_CFG = 0x06,
     CLASS_NAV = 0x01,
+    CLASS_ACK = 0x05,
+    CLASS_CFG = 0x06,
+    CLASS_MON = 0x0A,
+
+    ID_NAV_POSLLH = 0x02,
+    ID_NAV_STATUS = 0x03,
+    ID_NAV_DOP = 0x04,
+    ID_NAV_PVT = 0x07,
+    ID_NAV_VELNED = 0x12,
+    ID_NAV_TIMEGPS = 0x20,
+    ID_NAV_TIMEUTC = 0x21,
+    ID_NAV_COV = 0x36,
+
+    ID_ACK_NAK = 0x00,
+    ID_ACK_ACK = 0x01,
 
     ID_CFG_MSG = 0x01,
     ID_CFG_RATE = 0x08,
     ID_CFG_NAV5 = 0x24,
     ID_CFG_GNSS = 0x3E,
-    ID_NAV_POSLLH = 0x02,
-    ID_NAV_STATUS = 0x03,
-    ID_NAV_PVT = 0x07,
-    ID_NAV_VELNED = 0x12,
-    ID_NAV_COV = 0x36,
+
+    ID_MON_HW = 0x09,
+    ID_MON_HW2 = 0x0B,
   };
 
 public:
   // Class + ID
-  enum message_t
+  enum message_t : uint16_t
   {
     NAV_POSLLH = (CLASS_NAV << 8) + ID_NAV_POSLLH,
     NAV_STATUS = (CLASS_NAV << 8) + ID_NAV_STATUS,
+    NAV_DOP = (CLASS_NAV << 8) + ID_NAV_DOP,
     NAV_PVT = (CLASS_NAV << 8) + ID_NAV_PVT,
     NAV_VELNED = (CLASS_NAV << 8) + ID_NAV_VELNED,
+    NAV_TIMEGPS = (CLASS_NAV << 8) + ID_NAV_TIMEGPS,
+    NAV_TIMEUTC = (CLASS_NAV << 8) + ID_NAV_TIMEUTC,
     NAV_COV = (CLASS_NAV << 8) + ID_NAV_COV,
+
+    ACK_NAK = (CLASS_ACK << 8) + ID_ACK_NAK,
+    ACK_ACK = (CLASS_ACK << 8) + ID_ACK_ACK,
+
+    MON_HW = (CLASS_MON << 8) + ID_MON_HW,
+    MON_HW2 = (CLASS_MON << 8) + ID_MON_HW2,
   };
 
-  enum dynamics_model
+  // gpsFix (UBX-STATUS), fixType (UBX-PVT)
+  enum gps_fix : uint8_t
+  {
+    NO_FIX = 0,
+    DEAD_RECHONING_ONLY = 1,
+    FIX_2D = 2,
+    FIX_3D = 3,
+    GPS_DEAD_RECHONING_COMBINED = 4,
+    TIME_ONLY_FIX = 5,
+  };
+
+  // dynModel (UBX-CFG-NAV5)
+  enum dynamics_model : uint8_t
   {
     PORTABLE = 0,
     STATIONARY = 2,
@@ -121,12 +154,23 @@ public:
     ELECTRIC_KICK_SCOOTER = 12,
   };
 
+  // gnssId (UBX-CFG-GNSS)
+  enum gnss_id : uint8_t
+  {
+    GPS = 0,
+    SBAS = 1,
+    GALILEO = 2,
+    BEIDOU = 3,
+    QZSS = 5,
+    GLONASS = 6,
+  };
+
   explicit Ublox();
   explicit Ublox(UBXScanner* scan, UBXParser* pars);
 
   /* 32.10.18.3 Set message rate */
-  bool enableNavMsg(message_t msg, bool enable);
-  bool enableAllNavMsgs(bool enable);
+  bool enableMsg(message_t msg, bool enable);
+  bool enableAllMsgs(bool enable);
 
   /* 32.10.27.1 Navigation/measurement rate settings */
   bool configureSolutionRate(uint16_t meas_rate, uint16_t nav_rate = 1, uint16_t time_ref = 1);
@@ -144,11 +188,20 @@ public:
 
   uint16_t update();
 
-  void decode(NavPayload_POSLLH& data) const;
-  void decode(NavPayload_STATUS& data) const;
-  void decode(NavPayload_PVT& data) const;
-  void decode(NavPayload_VELNED& data) const;
-  void decode(NavPayload_COV& data) const;
+  void decode(NavPosllhPayload& data) const;
+  void decode(NavStatusPayload& data) const;
+  void decode(NavDopPayload& data) const;
+  void decode(NavPvtPayload& data) const;
+  void decode(NavVelnedPayload& data) const;
+  void decode(NavTimegpsPayload& data) const;
+  void decode(NavTimeutcPayload& data) const;
+  void decode(NavCovPayload& data) const;
+
+  void decode(AckNakPayload& data) const;
+  void decode(AckAckPayload& data) const;
+
+  void decode(MonHwPayload& data) const;
+  void decode(MonHw2Payload& data) const;
 
 private:
   struct PACKED UbxHeader
@@ -232,4 +285,42 @@ private:
 
   /* p.171, 32.4 UBX Checksum. */
   CheckSum calculateCheckSum(uint8_t* message, size_t size) const;
+
+  bool configureGnss(uint8_t gnss_id, uint8_t res_track_ch, uint8_t max_track_ch, bool enable);
+  bool waitForAcknowledge(uint8_t cls, uint8_t id);
 };
+
+inline uint8_t* UBXScanner::getMessage()
+{
+  return message_;
+}
+
+inline const uint32_t& UBXScanner::getMessageLength() const
+{
+  return message_length_;
+}
+
+inline const uint32_t& UBXScanner::getPosition() const
+{
+  return position_;
+}
+
+inline uint8_t* UBXParser::getMessage() const
+{
+  return message_;
+}
+
+inline const uint32_t& UBXParser::getLength() const
+{
+  return scanner_->getMessageLength();
+}
+
+inline const uint32_t& UBXParser::getPosition() const
+{
+  return scanner_->getPosition();
+}
+
+inline const uint16_t& UBXParser::getLatestMsg() const
+{
+  return latest_id_;
+}

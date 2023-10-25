@@ -59,7 +59,7 @@ int main(int, char* argv[])
     return 1;
   }
 
-  pwm->set_frequency(PWM_OUTPUT, 50);
+  pwm->setFrequency(PWM_OUTPUT, 50);
 
   if (!(pwm->enable(PWM_OUTPUT)))
   {
@@ -68,12 +68,12 @@ int main(int, char* argv[])
 
   while (true)
   {
-    if (!pwm->set_duty_cycle(PWM_OUTPUT, SERVO_MIN))
+    if (!pwm->setDutyCycle(PWM_OUTPUT, SERVO_MIN))
     {
       fprintf(stderr, "Failed to set PWM duty cycle.\n");
     }
     sleep(1);
-    if (!pwm->set_duty_cycle(PWM_OUTPUT, SERVO_MAX))
+    if (!pwm->setDutyCycle(PWM_OUTPUT, SERVO_MAX))
     {
       fprintf(stderr, "Failed to set PWM duty cycle.\n");
     }

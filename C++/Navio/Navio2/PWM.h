@@ -7,9 +7,9 @@ class PWM
 public:
   explicit PWM();
 
-  bool init(uint32_t channel);
-  bool enable(uint32_t channel);
-  bool set_period(uint32_t channel, uint32_t freq);
+  bool init(const uint32_t& channel);
+  bool enable(const uint32_t& channel);
+  bool setPeriod(const uint32_t& channel, const uint32_t& freq);
   /* Note: period [ms] */
-  bool set_duty_cycle(uint32_t channel, float period);
+  bool setDutyCycle(const uint32_t& channel, const float& period);
 };

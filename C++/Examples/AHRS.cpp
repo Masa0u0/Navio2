@@ -39,9 +39,9 @@ void AHRS::update(float dt)
   float mx, my, mz;
 
   sensor->update();
-  sensor->read_accelerometer(&ax, &ay, &az);
-  sensor->read_gyroscope(&gx, &gy, &gz);
-  sensor->read_magnetometer(&mx, &my, &mz);
+  sensor->readAccelerometer(&ax, &ay, &az);
+  sensor->readGyroscope(&gx, &gy, &gz);
+  sensor->readMagnetometer(&mx, &my, &mz);
 
   // Use IMU algorithm if magnetometer measurement invalid (avoids NaN in magnetometer
   // normalisation)
@@ -154,8 +154,8 @@ void AHRS::updateIMU(float dt)
 
   // Accel + gyro.
   sensor->update();
-  sensor->read_accelerometer(&ax, &ay, &az);
-  sensor->read_gyroscope(&gx, &gy, &gz);
+  sensor->readAccelerometer(&ax, &ay, &az);
+  sensor->readGyroscope(&gx, &gy, &gz);
 
   ax /= G_SI;
   ay /= G_SI;
@@ -248,7 +248,7 @@ void AHRS::setGyroOffset()
   for (int i = 0; i < 100; i++)
   {
     sensor->update();
-    sensor->read_gyroscope(&gx, &gy, &gz);
+    sensor->readGyroscope(&gx, &gy, &gz);
 
     gx *= 180 / PI;
     gy *= 180 / PI;
@@ -356,7 +356,7 @@ std::unique_ptr<InertialSensor> get_inertial_sensor(std::string sensor_name)
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -429,13 +429,13 @@ void imuLoop(AHRS* ahrs, Socket sock)
 
   //----------------------- Calculate delta time ----------------------------
 
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   previoustime = currenttime;
   currenttime = 1000000 * tv.tv_sec + tv.tv_usec;
   dt = (currenttime - previoustime) / 1000000.0;
   if (dt < 1 / 1300.0)
     usleep((1 / 1300.0 - dt) * 1000000);
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   currenttime = 1000000 * tv.tv_sec + tv.tv_usec;
   dt = (currenttime - previoustime) / 1000000.0;
 

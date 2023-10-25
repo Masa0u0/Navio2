@@ -20,18 +20,18 @@ int main()
   Ublox gps;
 
   // Payloads
-  NavPayload_POSLLH posllh;
-  NavPayload_STATUS status;
-  NavPayload_PVT pvt;
-  NavPayload_VELNED velned;
-  NavPayload_COV cov;
+  NavPosllhPayload posllh;
+  NavStatusPayload status;
+  NavPvtPayload pvt;
+  NavVelnedPayload velned;
+  NavCovPayload cov;
 
   // Set message rate
-  gps.enableNavMsg(Ublox::NAV_POSLLH, false);
-  gps.enableNavMsg(Ublox::NAV_STATUS, true);
-  gps.enableNavMsg(Ublox::NAV_PVT, true);
-  gps.enableNavMsg(Ublox::NAV_VELNED, false);
-  gps.enableNavMsg(Ublox::NAV_COV, true);
+  gps.enableMsg(Ublox::NAV_POSLLH, false);
+  gps.enableMsg(Ublox::NAV_STATUS, true);
+  gps.enableMsg(Ublox::NAV_PVT, true);
+  gps.enableMsg(Ublox::NAV_VELNED, false);
+  gps.enableMsg(Ublox::NAV_COV, true);
 
   // Navigation/measurement rate settings
   if (!gps.configureSolutionRate(MEASUREMENT_RATE))

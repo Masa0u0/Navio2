@@ -1,6 +1,7 @@
 import os.path
 
-class PWM():
+
+class PWM:
     SYSFS_PWM_PATH_BASE = "/sys/class/pwm/pwmchip0/"
     SYSFS_PWM_EXPORT_PATH = "/sys/class/pwm/pwmchip0/export"
     SYSFS_PWM_UNEXPORT_PATH = "/sys/class/pwm/pwmchip0/unexport"
@@ -49,14 +50,14 @@ class PWM():
         if not self.is_initialized:
             raise RuntimeError("PWM not initialized. Call initialize first")
 
-        period_ns = int(1e9/freq)
-        with open(self.channel_path + "period",  "w") as pwm_period:
+        period_ns = int(1e9 / freq)
+        with open(self.channel_path + "period", "w") as pwm_period:
             pwm_period.write(str(period_ns))
 
     def set_duty_cycle(self, period):
         if not self.is_initialized:
             raise RuntimeError("PWM not initialized. Call initialize first")
 
-        period_ns = int(period*1e6)
+        period_ns = int(period * 1e6)
         with open(self.channel_path + "duty_cycle", "w") as pwm_duty:
             pwm_duty.write(str(period_ns))

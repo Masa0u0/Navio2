@@ -12,7 +12,7 @@ class SPIdev
 public:
   explicit SPIdev(
     const char* spidev,
-    uint32_t speed_hz = 1000000,
+    uint32_t speed_hz,
     u_char bits_per_word = 8,
     u_short delay_usecs = 0);
   ~SPIdev();

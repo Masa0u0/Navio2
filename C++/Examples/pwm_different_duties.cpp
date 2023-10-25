@@ -38,7 +38,7 @@ int main(int, char** argv)
       cerr << "Failed to initialze PWM on channel " << channel << endl;
       return 1;
     }
-    if (!pwm.set_frequency(channel, PWM_FREQUENCY))
+    if (!pwm.setFrequency(channel, PWM_FREQUENCY))
     {
       cerr << "Failed to set frequency on channel " << channel << endl;
       return 1;
@@ -56,7 +56,7 @@ int main(int, char** argv)
   {
     for (uint32_t channel = 0; channel < SERVO_RAIL_SIZE; ++channel)
     {
-      if (!pwm.set_duty_cycle(channel, PWM_DISARM))
+      if (!pwm.setDutyCycle(channel, PWM_DISARM))
       {
         cerr << "Failed to set disarm duty cycle on channel " << channel << endl;
         return 1;
@@ -75,7 +75,7 @@ int main(int, char** argv)
     {
       const double rate = static_cast<double>(channel) / static_cast<double>(SERVO_RAIL_SIZE);
       const double period = PWM_MIN + (PWM_MAX - PWM_MIN) * rate;
-      if (!pwm.set_duty_cycle(channel, period))
+      if (!pwm.setDutyCycle(channel, period))
       {
         cerr << "Failed to set PWM duty cycle on channel " << channel << endl;
         return 1;

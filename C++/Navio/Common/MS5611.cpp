@@ -5,7 +5,7 @@
 
 MS5611::MS5611(uint8_t address)
 {
-  this->devAddr = address;
+  devAddr = address;
 }
 
 void MS5611::initialize()
@@ -32,10 +32,7 @@ bool MS5611::testConnection()
 {
   uint8_t data;
   int8_t status = I2Cdev::readByte(devAddr, MS5611_RA_C0, &data);
-  if (status > 0)
-    return true;
-  else
-    return false;
+  return status > 0;
 }
 
 void MS5611::refreshPressure(uint8_t OSR)
@@ -45,7 +42,6 @@ void MS5611::refreshPressure(uint8_t OSR)
 
 void MS5611::readPressure()
 {
-  //
   uint8_t buffer[3];
   I2Cdev::readBytes(devAddr, MS5611_RA_ADC, 3, buffer);
   D1 = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];

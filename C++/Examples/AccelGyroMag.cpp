@@ -21,7 +21,7 @@ std::unique_ptr<InertialSensor> get_inertial_sensor(std::string sensor_name)
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -105,13 +105,14 @@ int main(int argc, char* argv[])
   while (1)
   {
     sensor->update();
-    sensor->read_accelerometer(&ax, &ay, &az);
-    sensor->read_gyroscope(&gx, &gy, &gz);
-    sensor->read_magnetometer(&mx, &my, &mz);
+    sensor->readAccelerometer(&ax, &ay, &az);
+    sensor->readGyroscope(&gx, &gy, &gz);
+    sensor->readMagnetometer(&mx, &my, &mz);
     printf("Acc: %+7.3f %+7.3f %+7.3f  ", ax, ay, az);
     printf("Gyr: %+8.3f %+8.3f %+8.3f  ", gx, gy, gz);
     printf("Mag: %+7.3f %+7.3f %+7.3f\n", mx, my, mz);
 
-    usleep(500000);
+    // usleep(500000);
+    usleep(5000);
   }
 }
