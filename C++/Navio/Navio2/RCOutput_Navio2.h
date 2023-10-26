@@ -10,7 +10,7 @@ public:
 
   inline bool initialize(const uint32_t& channel) override;
   inline bool enable(const uint32_t& channel) override;
-  inline bool setFrequency(const uint32_t& channel, const double& frequency) override;
+  inline bool setFrequency(const uint32_t& channel, const uint32_t& frequency) override;
   inline bool setDutyCycle(const uint32_t& channel, const double& period_ns) override;
 
 private:
@@ -31,7 +31,7 @@ inline bool RCOutput_Navio2::enable(const uint32_t& channel)
   return pwm_.enable(channel);
 }
 
-inline bool RCOutput_Navio2::setFrequency(const uint32_t& channel, const double& frequency)
+inline bool RCOutput_Navio2::setFrequency(const uint32_t& channel, const uint32_t& frequency)
 {
   return pwm_.setPeriod(channel, frequency);
 }

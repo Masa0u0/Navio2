@@ -9,7 +9,7 @@ public:
   explicit RCOutput_Navio();
   bool initialize(const uint32_t&) override;
   bool enable(const uint32_t&) override;
-  bool setFrequency(const uint32_t&, const double& frequency) override;
+  bool setFrequency(const uint32_t&, const uint32_t& frequency) override;
   bool setDutyCycle(const uint32_t& channel, const double& period) override;
 
 private:

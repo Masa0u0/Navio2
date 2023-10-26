@@ -32,7 +32,7 @@ bool RCOutput_Navio::enable(const uint32_t&)
   return true;
 }
 
-bool RCOutput_Navio::setFrequency(const uint32_t&, const double& frequency)
+bool RCOutput_Navio::setFrequency(const uint32_t&, const uint32_t& frequency)
 {
   pwm_.setFrequency(frequency);
   return true;
