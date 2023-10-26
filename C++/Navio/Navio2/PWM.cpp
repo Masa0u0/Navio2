@@ -56,14 +56,14 @@ bool PWM::setPeriod(const uint32_t& channel, const uint32_t& freq)
   return true;
 }
 
-bool PWM::setDutyCycle(const uint32_t& channel, const float& period)
+bool PWM::setDutyCycle(const uint32_t& channel, const double& period_ms)
 {
   char path[60] = "/sys/class/pwm/pwmchip0";
   char path_ch[20];
   sprintf(path_ch, "/pwm%u/duty_cycle", channel);
   strcat(path, path_ch);
 
-  const int period_ns = period * 1e+6;
+  const int period_ns = period_ms * 1e+6;
   if (write_file(path, "%u", period_ns) < 0)
   {
     printf("Can't set duty cycle to channel %u\n", channel);

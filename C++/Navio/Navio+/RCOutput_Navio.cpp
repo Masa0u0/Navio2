@@ -28,18 +28,18 @@ bool RCOutput_Navio::initialize(const uint32_t&)
 
 bool RCOutput_Navio::enable(const uint32_t&)
 {
-  pwm.initialize();
+  pwm_.initialize();
   return true;
 }
 
-bool RCOutput_Navio::setFrequency(const uint32_t&, const float& frequency)
+bool RCOutput_Navio::setFrequency(const uint32_t&, const double& frequency)
 {
-  pwm.setFrequency(frequency);
+  pwm_.setFrequency(frequency);
   return true;
 }
 
-bool RCOutput_Navio::setDutyCycle(const uint32_t& channel, const float& period)
+bool RCOutput_Navio::setDutyCycle(const uint32_t& channel, const double& period)
 {
-  pwm.setPWMmS(channel + 3, period / 1000);  // 1st Navio RC output is 3
+  pwm_.setPWMmS(channel + 3, period / 1000);  // 1st Navio RC output is 3
   return true;
 }
