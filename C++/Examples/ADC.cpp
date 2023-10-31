@@ -33,7 +33,7 @@ int main()
   float results[adc->get_channel_count()] = { 0.0f };
   while (true)
   {
-    for (int i = 0; i < adc->get_channel_count(); i++)
+    for (int i = 0; i < adc->get_channel_count(); ++i)
     {
       results[i] = adc->read(i);
       if (results[i] == READ_FAILED)

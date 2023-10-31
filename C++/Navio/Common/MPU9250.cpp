@@ -48,7 +48,7 @@ void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
   spi_dev_.transfer(tx, rx, Bytes + 1);
   // usleep(50);
 
-  for (i = 0; i < Bytes; i++)
+  for (i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
 }
 
@@ -137,7 +137,7 @@ void MPU9250::initialize()
   set_acc_scale(BITS_FS_4G);
   set_gyro_scale(BITS_FS_500DPS);
 
-  for (i = 0; i < MPU_InitRegNum; i++)
+  for (i = 0; i < MPU_InitRegNum; ++i)
   {
     WriteReg(MPU_Init_Data[i][1], MPU_Init_Data[i][0]);
     usleep(100000);  // I2C must slow down the write speed, otherwise it won't work
@@ -294,7 +294,7 @@ void MPU9250::calib_mag()
   ReadRegs(MPUREG_EXT_SENS_DATA_00, response, 3);
 
   // response=WriteReg(MPUREG_I2C_SLV0_DO, 0x00);    //Read I2C
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; ++i)
   {
     data = response[i];
     magnetometer_ASA[i] = ((data - 128) / 256 + 1) * Magnetometer_Sensitivity_Scale_Factor;
@@ -321,7 +321,7 @@ void MPU9250::update()
   ReadRegs(MPUREG_ACCEL_XOUT_H, response, 21);
 
   // Get accelerometer value
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; ++i)
   {
     bit_data[i] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
@@ -334,7 +334,7 @@ void MPU9250::update()
   temperature = ((bit_data[0] - 21) / 333.87) + 21;
 
   // Get gyroscope value
-  for (i = 4; i < 7; i++)
+  for (i = 4; i < 7; ++i)
   {
     bit_data[i - 4] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
@@ -343,7 +343,7 @@ void MPU9250::update()
   gz_ = DEG2RAD * bit_data[2] / gyro_divider;
 
   // Get Magnetometer value
-  for (i = 7; i < 10; i++)
+  for (i = 7; i < 10; ++i)
   {
     bit_data[i - 7] = ((int16_t)response[i * 2 + 1] << 8) | response[i * 2];
   }

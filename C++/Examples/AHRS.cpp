@@ -235,7 +235,7 @@ void AHRS::setGyroOffset()
 {
   //---------------------- Calculate the offset -----------------------------
 
-  float offset[3] = { 0.0, 0.0, 0.0 };
+  float offset[3] = { 0, 0, 0 };
   float gx, gy, gz;
 
   //----------------------- MPU initialization ------------------------------
@@ -245,7 +245,7 @@ void AHRS::setGyroOffset()
   //-------------------------------------------------------------------------
 
   printf("Beginning Gyro calibration...\n");
-  for (int i = 0; i < 100; i++)
+  for (int i = 0; i < 100; ++i)
   {
     sensor->update();
     sensor->readGyroscope(&gx, &gy, &gz);
@@ -324,7 +324,7 @@ public:
   {
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    servaddr.sin_addr.s_addr = inet_addr("127.0.1");
     servaddr.sin_port = htons(7000);
   }
 
