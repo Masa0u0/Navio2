@@ -1,10 +1,12 @@
 #include <cmath>
+#include <cassert>
 
 #include "MPU9250.h"
 
 #define DEVICE "/dev/spidev0.1"
 #define G_SI 9.80665
 #define DEG2RAD (M_PI / 180.)
+#define DATA_LENGTH 255
 
 //-----------------------------------------------------------------------------------------------
 
@@ -36,17 +38,19 @@ uint8_t MPU9250::ReadReg(uint8_t ReadAddr)
 
 //-----------------------------------------------------------------------------------------------
 
-void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint8_t Bytes)
+void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  uint8_t tx[(1 << 8) - 1] = { 0 };
-  uint8_t rx[(1 << 8) - 1] = { 0 };
+  assert(Bytes + 1 < DATA_LENGTH);
+
+  uint8_t tx[DATA_LENGTH] = { 0 };
+  uint8_t rx[DATA_LENGTH] = { 0 };
 
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_.transfer(tx, rx, Bytes + 1);
   // usleep(50);
 
-  for (uint8_t i = 0; i < Bytes; ++i)
+  for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
 }
 
@@ -155,7 +159,7 @@ BITS_FS_16G
 returns the range set (2,4,8 or 16)
 -----------------------------------------------------------------------------------------------*/
 
-uint8_t MPU9250::set_acc_scale(uint8_t scale)
+void MPU9250::set_acc_scale(uint8_t scale)
 {
   WriteReg(MPUREG_ACCEL_CONFIG, scale);
 
@@ -174,24 +178,6 @@ uint8_t MPU9250::set_acc_scale(uint8_t scale)
       acc_divider = 2048;
       break;
   }
-
-  auto temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
-  switch (temp_scale)
-  {
-    case BITS_FS_2G:
-      temp_scale = 2;
-      break;
-    case BITS_FS_4G:
-      temp_scale = 4;
-      break;
-    case BITS_FS_8G:
-      temp_scale = 8;
-      break;
-    case BITS_FS_16G:
-      temp_scale = 16;
-      break;
-  }
-  return temp_scale;
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -205,7 +191,7 @@ BITS_FS_2000DPS
 returns the range set (250,500,1000 or 2000)
 -----------------------------------------------------------------------------------------------*/
 
-uint8_t MPU9250::set_gyro_scale(uint8_t scale)
+void MPU9250::set_gyro_scale(uint8_t scale)
 {
   WriteReg(MPUREG_GYRO_CONFIG, scale);
   switch (scale)
@@ -223,24 +209,6 @@ uint8_t MPU9250::set_gyro_scale(uint8_t scale)
       gyro_divider = 16.4;
       break;
   }
-
-  auto temp_scale = WriteReg(MPUREG_GYRO_CONFIG | READ_FLAG, 0x00);
-  switch (temp_scale)
-  {
-    case BITS_FS_250DPS:
-      temp_scale = 250;
-      break;
-    case BITS_FS_500DPS:
-      temp_scale = 500;
-      break;
-    case BITS_FS_1000DPS:
-      temp_scale = 1000;
-      break;
-    case BITS_FS_2000DPS:
-      temp_scale = 2000;
-      break;
-  }
-  return temp_scale;
 }
 
 /*-----------------------------------------------------------------------------------------------

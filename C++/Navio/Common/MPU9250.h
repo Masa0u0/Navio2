@@ -17,10 +17,10 @@ public:
 private:
   uint8_t WriteReg(uint8_t WriteAddr, uint8_t WriteData);
   uint8_t ReadReg(uint8_t ReadAddr);
-  void ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint8_t Bytes);
+  void ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes);
 
-  uint8_t set_gyro_scale(uint8_t scale);
-  uint8_t set_acc_scale(uint8_t scale);
+  void set_gyro_scale(uint8_t scale);
+  void set_acc_scale(uint8_t scale);
 
   void calib_acc();
   void calib_mag();
