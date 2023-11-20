@@ -35,7 +35,7 @@ void LSM9DS1::readRegsImu(const uint8_t& read_addr, uint8_t* read_buf, const uin
   tx_[0] = read_addr | READ_FLAG;
   spi_dev_imu_.transfer(tx_, rx_, bytes + 1);
 
-  for (uint32_t i = 0; i < bytes; ++i)
+  for (size_t i = 0; i < bytes; ++i)
     read_buf[i] = rx_[i + 1];
 }
 
@@ -44,7 +44,7 @@ void LSM9DS1::readRegsMag(const uint8_t& read_addr, uint8_t* read_buf, const uin
   tx_[0] = read_addr | READ_FLAG | MULTIPLE_READ;
   spi_dev_mag_.transfer(tx_, rx_, bytes + 1);
 
-  for (uint32_t i = 0; i < bytes; ++i)
+  for (size_t i = 0; i < bytes; ++i)
     read_buf[i] = rx_[i + 1];
 }
 
@@ -79,7 +79,7 @@ void LSM9DS1::updateTemperature()
 void LSM9DS1::updateAccelerometer()
 {
   readRegsImu(XG_OUT_X_L_XL, &response_[0], 6);
-  for (uint32_t i = 0; i < 3; ++i)
+  for (size_t i = 0; i < 3; ++i)
   {
     bit_data_[i] = ((int16_t)response_[2 * i + 1] << 8) | response_[2 * i];
   }
@@ -92,7 +92,7 @@ void LSM9DS1::updateAccelerometer()
 void LSM9DS1::updateGyroscope()
 {
   readRegsImu(XG_OUT_X_L_G, &response_[0], 6);
-  for (uint32_t i = 0; i < 3; ++i)
+  for (size_t i = 0; i < 3; ++i)
   {
     bit_data_[i] = ((int16_t)response_[2 * i + 1] << 8) | response_[2 * i];
   }
@@ -105,7 +105,7 @@ void LSM9DS1::updateGyroscope()
 void LSM9DS1::updateMagnetometer()
 {
   readRegsMag(M_OUT_X_L_M, &response_[0], 6);
-  for (uint32_t i = 0; i < 3; ++i)
+  for (size_t i = 0; i < 3; ++i)
   {
     bit_data_[i] = ((int16_t)response_[2 * i + 1] << 8) | response_[2 * i];
   }

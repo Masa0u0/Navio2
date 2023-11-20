@@ -7,8 +7,8 @@ class PWM
 public:
   explicit PWM();
 
-  bool init(const uint32_t& channel);
-  bool enable(const uint32_t& channel);
-  bool setPeriod(const uint32_t& channel, const uint32_t& freq);
-  bool setDutyCycle(const uint32_t& channel, const double& period_ms);
+  bool init(const size_t& channel);
+  bool enable(const size_t& channel);
+  bool setPeriod(const size_t& channel, const size_t& freq);
+  bool setDutyCycle(const size_t& channel, const double& period_ms);
 };

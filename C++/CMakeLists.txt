@@ -44,7 +44,6 @@ set(LIB_SRC_FILES
 	Navio/Navio2/LSM9DS1.cpp
 	Navio/Navio2/Led_Navio2.cpp
 	Navio/Navio2/PWM.cpp
-	Navio/Navio2/DSHOT.cpp
 	Navio/Navio2/RCInput_Navio2.cpp
 	Navio/Navio2/RCOutput_Navio2.cpp
 	Navio/Navio2/RGBled.cpp

@@ -83,23 +83,6 @@ int get_navio_version()
   return version;
 }
 
-// float decodeBinary32(uint32_t bin)
-// {
-//   const int sign = bin >> 31 ? -1 : 1;
-//   const int exponent = ((bin & 0x7f800000) >> 23) - 0x7F;
-//   const uint32_t fraction = bin & 0x007fffff;
-
-//   uint32_t pow2 = 1 << 23;
-//   float fraction_decoded = 0.;
-//   for (uint32_t i = 0; i < 23; ++i)
-//   {
-//     fraction_decoded += static_cast<float>((fraction >> i) & 1) / pow2;
-//     pow2 = pow2 >> 1;
-//   }
-
-//   return sign * (1 + fraction_decoded) * pow(2, exponent);
-// }
-
 float decodeBinary32(uint32_t bin)
 {
   const int sign = bin >> 31 ? -1 : 1;

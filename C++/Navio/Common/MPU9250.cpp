@@ -17,7 +17,7 @@ MPU9250::MPU9250() : spi_dev_(DEVICE, kSpiSpeedHz)
 usage: use these methods to read and write MPU9250 registers over SPI
 -----------------------------------------------------------------------------------------------*/
 
-uint32_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
+uint8_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
 {
   uint8_t tx[2] = { WriteAddr, WriteData };
   uint8_t rx[2] = { 0 };
@@ -29,26 +29,24 @@ uint32_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
 
 //-----------------------------------------------------------------------------------------------
 
-uint32_t MPU9250::ReadReg(uint8_t ReadAddr)
+uint8_t MPU9250::ReadReg(uint8_t ReadAddr)
 {
   return WriteReg(ReadAddr | READ_FLAG, 0x00);
 }
 
 //-----------------------------------------------------------------------------------------------
 
-void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
+void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint8_t Bytes)
 {
-  uint32_t i = 0;
-
-  uint8_t tx[255] = { 0 };
-  uint8_t rx[255] = { 0 };
+  uint8_t tx[(1 << 8) - 1] = { 0 };
+  uint8_t rx[(1 << 8) - 1] = { 0 };
 
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_.transfer(tx, rx, Bytes + 1);
   // usleep(50);
 
-  for (i = 0; i < Bytes; ++i)
+  for (uint8_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
 }
 
@@ -157,9 +155,8 @@ BITS_FS_16G
 returns the range set (2,4,8 or 16)
 -----------------------------------------------------------------------------------------------*/
 
-uint32_t MPU9250::set_acc_scale(int scale)
+uint8_t MPU9250::set_acc_scale(uint8_t scale)
 {
-  uint32_t temp_scale;
   WriteReg(MPUREG_ACCEL_CONFIG, scale);
 
   switch (scale)
@@ -177,8 +174,8 @@ uint32_t MPU9250::set_acc_scale(int scale)
       acc_divider = 2048;
       break;
   }
-  temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
 
+  auto temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
   switch (temp_scale)
   {
     case BITS_FS_2G:
@@ -208,9 +205,8 @@ BITS_FS_2000DPS
 returns the range set (250,500,1000 or 2000)
 -----------------------------------------------------------------------------------------------*/
 
-uint32_t MPU9250::set_gyro_scale(int scale)
+uint8_t MPU9250::set_gyro_scale(uint8_t scale)
 {
-  uint32_t temp_scale;
   WriteReg(MPUREG_GYRO_CONFIG, scale);
   switch (scale)
   {
@@ -228,7 +224,7 @@ uint32_t MPU9250::set_gyro_scale(int scale)
       break;
   }
 
-  temp_scale = WriteReg(MPUREG_GYRO_CONFIG | READ_FLAG, 0x00);
+  auto temp_scale = WriteReg(MPUREG_GYRO_CONFIG | READ_FLAG, 0x00);
   switch (temp_scale)
   {
     case BITS_FS_250DPS:
@@ -259,9 +255,8 @@ returns Factory Trim value
 void MPU9250::calib_acc()
 {
   uint8_t response[4];
-  int temp_scale;
   // read current acc scale
-  temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
+  auto temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
   set_acc_scale(BITS_FS_8G);
   // ENABLE SELF TEST need modify
   // temp_scale=WriteReg(MPUREG_ACCEL_CONFIG, 0x80>>axis);
