@@ -56,7 +56,7 @@ int main()
 
   fram.writeBytes(reg_address, 3, a);
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < 3; ++i)
     a[i] = 0;
 
   printf("Reading data...\n");

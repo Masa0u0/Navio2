@@ -328,7 +328,7 @@ bool I2Cdev::writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16
     return (FALSE);
   }
   buf[0] = regAddr;
-  for (i = 0; i < length; i++)
+  for (i = 0; i < length; ++i)
   {
     buf[i * 2 + 1] = data[i] >> 8;
     buf[i * 2 + 2] = data[i];

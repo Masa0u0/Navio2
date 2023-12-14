@@ -1,73 +1,37 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdarg.h>
-#include <errno.h>
+#include <string>
+#include <iostream>
 
 #include "../Common/Util.h"
 #include "./PWM.h"
+
+using namespace std;
 
 PWM::PWM()
 {
 }
 
-bool PWM::init(const uint32_t& channel)
+bool PWM::init(const size_t& channel)
 {
-  const int err = write_file("/sys/class/pwm/pwmchip0/export", "%u", channel);
-  if (err >= 0 || err == -EBUSY)
-  {
-    return true;
-  }
-  else
-  {
-    printf("Can't init channel %u\n", channel);
-    return false;
-  }
-  return true;
+  const auto err = write_file("/sys/class/pwm/pwmchip0/export", "%u", channel);
+  return err >= 0 || err == -EBUSY;
 }
 
-bool PWM::enable(const uint32_t& channel)
+bool PWM::enable(const size_t& channel)
 {
-  char path[60] = "/sys/class/pwm/pwmchip0";
-  char path_ch[20];
-  sprintf(path_ch, "/pwm%u/enable", channel);
-  strcat(path, path_ch);
-
-  if (write_file(path, "1") < 0)
-  {
-    printf("Can't enable channel %u\n", channel);
-    return false;
-  }
-  return true;
+  const string path = "/sys/class/pwm/pwmchip0/pwm" + to_string(channel) + "/enable";
+  return write_file(path.c_str(), "1") >= 0;
 }
 
-bool PWM::setPeriod(const uint32_t& channel, const uint32_t& freq)
+bool PWM::setPeriod(const size_t& channel, const size_t& freq)
 {
-  char path[60] = "/sys/class/pwm/pwmchip0";
-  char path_ch[20];
-  sprintf(path_ch, "/pwm%u/period", channel);
-  strcat(path, path_ch);
-
+  const string path = "/sys/class/pwm/pwmchip0/pwm" + to_string(channel) + "/period";
   const int period_ns = 1e+9 / freq;
-  if (write_file(path, "%u", period_ns) < 0)
-  {
-    printf("Can't set period to channel %u\n", channel);
-    return false;
-  }
-  return true;
+  return write_file(path.c_str(), "%u", period_ns) >= 0;
 }
 
-bool PWM::setDutyCycle(const uint32_t& channel, const float& period)
+bool PWM::setDutyCycle(const size_t& channel, const double& period_ms)
 {
-  char path[60] = "/sys/class/pwm/pwmchip0";
-  char path_ch[20];
-  sprintf(path_ch, "/pwm%u/duty_cycle", channel);
-  strcat(path, path_ch);
-
-  const int period_ns = period * 1e+6;
-  if (write_file(path, "%u", period_ns) < 0)
-  {
-    printf("Can't set duty cycle to channel %u\n", channel);
-    return false;
-  }
-  return true;
+  const string path = "/sys/class/pwm/pwmchip0/pwm" + to_string(channel) + "/duty_cycle";
+  const int period_ns = period_ms * 1e+6;
+  return write_file(path.c_str(), "%u", period_ns) >= 0;
 }

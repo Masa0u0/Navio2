@@ -7,9 +7,9 @@ RCOutput_Navio::RCOutput_Navio()
 {
 }
 
-bool RCOutput_Navio::initialize(const uint32_t&)
+bool RCOutput_Navio::initialize(const size_t&)
 {
-  static const uint8_t outputEnablePin = RPI_GPIO_27;
+  static constexpr uint8_t outputEnablePin = RPI_GPIO_27;
 
   Pin pin(outputEnablePin);
 
@@ -26,20 +26,20 @@ bool RCOutput_Navio::initialize(const uint32_t&)
   return true;
 }
 
-bool RCOutput_Navio::enable(const uint32_t&)
+bool RCOutput_Navio::enable(const size_t&)
 {
-  pwm.initialize();
+  pwm_.initialize();
   return true;
 }
 
-bool RCOutput_Navio::setFrequency(const uint32_t&, const float& frequency)
+bool RCOutput_Navio::setFrequency(const size_t&, const size_t& frequency)
 {
-  pwm.setFrequency(frequency);
+  pwm_.setFrequency(frequency);
   return true;
 }
 
-bool RCOutput_Navio::setDutyCycle(const uint32_t& channel, const float& period)
+bool RCOutput_Navio::setDutyCycle(const size_t& channel, const double& period)
 {
-  pwm.setPWMmS(channel + 3, period / 1000);  // 1st Navio RC output is 3
+  pwm_.setPWMmS(channel + 3, period / 1000);  // 1st Navio RC output is 3
   return true;
 }

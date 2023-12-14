@@ -96,7 +96,7 @@ bool Pin::init()
   }
 
   void* gpio_map = mmap(
-    nullptr,                   /* any adddress in our space will do */
+    nullptr,                /* any adddress in our space will do */
     BLOCK_SIZE,             /* map length */
     PROT_READ | PROT_WRITE, /* enable reading & writting to mapped memory */
     MAP_SHARED,             /* shared with other processes */

@@ -1,10 +1,12 @@
 #include <cmath>
+#include <cassert>
 
 #include "MPU9250.h"
 
 #define DEVICE "/dev/spidev0.1"
 #define G_SI 9.80665
 #define DEG2RAD (M_PI / 180.)
+#define DATA_LENGTH 255
 
 //-----------------------------------------------------------------------------------------------
 
@@ -17,7 +19,7 @@ MPU9250::MPU9250() : spi_dev_(DEVICE, kSpiSpeedHz)
 usage: use these methods to read and write MPU9250 registers over SPI
 -----------------------------------------------------------------------------------------------*/
 
-uint32_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
+uint8_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
 {
   uint8_t tx[2] = { WriteAddr, WriteData };
   uint8_t rx[2] = { 0 };
@@ -29,7 +31,7 @@ uint32_t MPU9250::WriteReg(uint8_t WriteAddr, uint8_t WriteData)
 
 //-----------------------------------------------------------------------------------------------
 
-uint32_t MPU9250::ReadReg(uint8_t ReadAddr)
+uint8_t MPU9250::ReadReg(uint8_t ReadAddr)
 {
   return WriteReg(ReadAddr | READ_FLAG, 0x00);
 }
@@ -38,17 +40,17 @@ uint32_t MPU9250::ReadReg(uint8_t ReadAddr)
 
 void MPU9250::ReadRegs(uint8_t ReadAddr, uint8_t* ReadBuf, uint32_t Bytes)
 {
-  uint32_t i = 0;
+  assert(Bytes + 1 < DATA_LENGTH);
 
-  uint8_t tx[255] = { 0 };
-  uint8_t rx[255] = { 0 };
+  uint8_t tx[DATA_LENGTH] = { 0 };
+  uint8_t rx[DATA_LENGTH] = { 0 };
 
   tx[0] = ReadAddr | READ_FLAG;
 
   spi_dev_.transfer(tx, rx, Bytes + 1);
   // usleep(50);
 
-  for (i = 0; i < Bytes; i++)
+  for (uint32_t i = 0; i < Bytes; ++i)
     ReadBuf[i] = rx[i + 1];
 }
 
@@ -137,7 +139,7 @@ void MPU9250::initialize()
   set_acc_scale(BITS_FS_4G);
   set_gyro_scale(BITS_FS_500DPS);
 
-  for (i = 0; i < MPU_InitRegNum; i++)
+  for (i = 0; i < MPU_InitRegNum; ++i)
   {
     WriteReg(MPU_Init_Data[i][1], MPU_Init_Data[i][0]);
     usleep(100000);  // I2C must slow down the write speed, otherwise it won't work
@@ -157,9 +159,8 @@ BITS_FS_16G
 returns the range set (2,4,8 or 16)
 -----------------------------------------------------------------------------------------------*/
 
-uint32_t MPU9250::set_acc_scale(int scale)
+void MPU9250::set_acc_scale(uint8_t scale)
 {
-  uint32_t temp_scale;
   WriteReg(MPUREG_ACCEL_CONFIG, scale);
 
   switch (scale)
@@ -177,24 +178,6 @@ uint32_t MPU9250::set_acc_scale(int scale)
       acc_divider = 2048;
       break;
   }
-  temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
-
-  switch (temp_scale)
-  {
-    case BITS_FS_2G:
-      temp_scale = 2;
-      break;
-    case BITS_FS_4G:
-      temp_scale = 4;
-      break;
-    case BITS_FS_8G:
-      temp_scale = 8;
-      break;
-    case BITS_FS_16G:
-      temp_scale = 16;
-      break;
-  }
-  return temp_scale;
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -208,9 +191,8 @@ BITS_FS_2000DPS
 returns the range set (250,500,1000 or 2000)
 -----------------------------------------------------------------------------------------------*/
 
-uint32_t MPU9250::set_gyro_scale(int scale)
+void MPU9250::set_gyro_scale(uint8_t scale)
 {
-  uint32_t temp_scale;
   WriteReg(MPUREG_GYRO_CONFIG, scale);
   switch (scale)
   {
@@ -227,24 +209,6 @@ uint32_t MPU9250::set_gyro_scale(int scale)
       gyro_divider = 16.4;
       break;
   }
-
-  temp_scale = WriteReg(MPUREG_GYRO_CONFIG | READ_FLAG, 0x00);
-  switch (temp_scale)
-  {
-    case BITS_FS_250DPS:
-      temp_scale = 250;
-      break;
-    case BITS_FS_500DPS:
-      temp_scale = 500;
-      break;
-    case BITS_FS_1000DPS:
-      temp_scale = 1000;
-      break;
-    case BITS_FS_2000DPS:
-      temp_scale = 2000;
-      break;
-  }
-  return temp_scale;
 }
 
 /*-----------------------------------------------------------------------------------------------
@@ -259,9 +223,8 @@ returns Factory Trim value
 void MPU9250::calib_acc()
 {
   uint8_t response[4];
-  int temp_scale;
   // read current acc scale
-  temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
+  auto temp_scale = WriteReg(MPUREG_ACCEL_CONFIG | READ_FLAG, 0x00);
   set_acc_scale(BITS_FS_8G);
   // ENABLE SELF TEST need modify
   // temp_scale=WriteReg(MPUREG_ACCEL_CONFIG, 0x80>>axis);
@@ -294,7 +257,7 @@ void MPU9250::calib_mag()
   ReadRegs(MPUREG_EXT_SENS_DATA_00, response, 3);
 
   // response=WriteReg(MPUREG_I2C_SLV0_DO, 0x00);    //Read I2C
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; ++i)
   {
     data = response[i];
     magnetometer_ASA[i] = ((data - 128) / 256 + 1) * Magnetometer_Sensitivity_Scale_Factor;
@@ -321,7 +284,7 @@ void MPU9250::update()
   ReadRegs(MPUREG_ACCEL_XOUT_H, response, 21);
 
   // Get accelerometer value
-  for (i = 0; i < 3; i++)
+  for (i = 0; i < 3; ++i)
   {
     bit_data[i] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
@@ -334,7 +297,7 @@ void MPU9250::update()
   temperature = ((bit_data[0] - 21) / 333.87) + 21;
 
   // Get gyroscope value
-  for (i = 4; i < 7; i++)
+  for (i = 4; i < 7; ++i)
   {
     bit_data[i - 4] = ((int16_t)response[i * 2] << 8) | response[i * 2 + 1];
   }
@@ -343,7 +306,7 @@ void MPU9250::update()
   gz_ = DEG2RAD * bit_data[2] / gyro_divider;
 
   // Get Magnetometer value
-  for (i = 7; i < 10; i++)
+  for (i = 7; i < 10; ++i)
   {
     bit_data[i - 7] = ((int16_t)response[i * 2 + 1] << 8) | response[i * 2];
   }

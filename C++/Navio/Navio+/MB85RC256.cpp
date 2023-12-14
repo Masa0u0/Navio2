@@ -24,7 +24,7 @@ uint8_t MB85RC256::writeBytes(uint16_t register_address, uint8_t length, uint8_t
 
   msg[0] = reg_address_low;
 
-  for (int i = 0; i < length; i++)
+  for (int i = 0; i < length; ++i)
   {
     msg[i + 1] = data[i];
   }
