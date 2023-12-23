@@ -25,6 +25,7 @@ AHRS::AHRS(std::unique_ptr<InertialSensor> imu)
   twoKi = 0;
   twoKp = 2;
 }
+
 void AHRS::update(float dt)
 {
   float recipNorm;
