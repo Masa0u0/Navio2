@@ -280,7 +280,7 @@ void Ublox::decode(NavStatusPayload& data) const
   data.gpsFixOk = (flags >> 0) & 1;
 }
 
-void Ublox::decode(NavDopPayload& data) const
+void Ublox::decode(NavDopPayload&) const
 {
   throw;  // TODO
 }
@@ -341,7 +341,7 @@ void Ublox::decode(NavVelnedPayload& data) const
   data.velD = int((*(s + 21) << 24) | (*(s + 20) << 16) | (*(s + 19) << 8) | (*(s + 18))) * 1e-2;
 }
 
-void Ublox::decode(NavTimegpsPayload& data) const
+void Ublox::decode(NavTimegpsPayload&) const
 {
   throw;  // TODO
 }
@@ -437,12 +437,12 @@ void Ublox::decode(AckAckPayload& data) const
   data.msgID = uint8_t(*(s + 7));
 }
 
-void Ublox::decode(MonHwPayload& data) const
+void Ublox::decode(MonHwPayload&) const
 {
   throw;  // TODO
 }
 
-void Ublox::decode(MonHw2Payload& data) const
+void Ublox::decode(MonHw2Payload&) const
 {
   throw;  // TODO
 }
